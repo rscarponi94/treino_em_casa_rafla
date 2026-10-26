@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pessoal - Foco & Performance</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            red: '#ef4444',
+                            orange: '#f97316',
+                            pink: '#ec4899',
+                            dark: '#0f172a',
+                            card: '#1e293b',
+                            border: '#334155'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ef4444; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col antialiased">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50 shadow-xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between py-3 gap-3">
+            
+            <!-- Logo & Profile Switcher -->
+            <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-start">
+                <div class="flex items-center gap-3">
+                    <div id="header-avatar" class="bg-gradient-to-tr from-red-600 to-orange-500 p-2.5 rounded-xl shadow-lg shadow-red-500/20">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-black tracking-tight text-white flex items-center gap-2">
+                            FOCO & PERFORMANCE
+                            <span id="profile-badge" class="text-xs font-semibold px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">RAFAEL</span>
+                        </h1>
+                        <p class="text-xs text-slate-400">Kit Roccia Prime + Bike Rmira 14kg</p>
+                    </div>
+                </div>
+
+                <!-- PROFILE SELECTOR BUTTONS -->
+                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                    <button id="btn-profile-rafael" onclick="switchProfile('rafael')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-red-600 text-white shadow">
+                        👨 Rafael
+                    </button>
+                    <button id="btn-profile-flaviane" onclick="switchProfile('flaviane')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white">
+                        🤰 Flaviane
+                    </button>
+                </div>
+            </div>
+
+            <!-- Global Timers Banner -->
+            <div class="flex items-center gap-2 sm:gap-4 w-full md:w-auto justify-end">
+                <!-- Rest Timer -->
+                <div class="bg-slate-800/90 border border-slate-700/80 px-3 py-1.5 rounded-xl text-center flex-1 sm:flex-initial">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Descanso</span>
+                    <span id="global-rest-display" class="text-sm font-mono font-bold text-yellow-400">00:00</span>
+                    <div class="flex gap-1 mt-0.5 justify-center">
+                        <button onclick="startRestTimer(30)" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-1.5 py-0.5 rounded text-slate-200">30s</button>
+                        <button onclick="startRestTimer(45)" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-1.5 py-0.5 rounded text-slate-200">45s</button>
+                        <button onclick="startRestTimer(60)" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-1.5 py-0.5 rounded text-slate-200">60s</button>
+                        <button onclick="startRestTimer(90)" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-1.5 py-0.5 rounded text-slate-200">90s</button>
+                    </div>
+                </div>
+
+                <!-- HIIT Timer -->
+                <div class="bg-slate-800/90 border border-slate-700/80 px-3 py-1.5 rounded-xl text-center min-w-[130px] flex-1 sm:flex-initial">
+                    <span id="hiit-status-label" class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider block">HIIT Spinning</span>
+                    <span id="hiit-display" class="text-sm font-mono font-bold text-emerald-400">00:30</span>
+                    <div class="flex gap-1 mt-0.5 justify-center">
+                        <button id="hiit-toggle-btn" onclick="toggleHIITTimer()" class="text-[10px] bg-emerald-600 hover:bg-emerald-500 px-2 py-0.5 rounded text-white font-bold">Start</button>
+                        <button onclick="resetHIITTimer()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-1.5 py-0.5 rounded text-slate-300">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Navigation Tabs -->
+        <nav class="flex overflow-x-auto border-t border-slate-800 max-w-7xl mx-auto px-4 text-xs font-semibold no-scrollbar">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-tab py-3 px-4 border-b-2 border-red-500 text-red-500 whitespace-nowrap flex items-center gap-2">
+                🔥 Dashboard & Mindset
+            </button>
+            <button onclick="switchTab('workouts')" id="nav-workouts" class="nav-tab py-3 px-4 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-2">
+                🏋️ Treinos & Spinning
+            </button>
+            <button onclick="switchTab('evolution')" id="nav-evolution" class="nav-tab py-3 px-4 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-2">
+                📊 Evolução Corporal
+            </button>
+            <button onclick="switchTab('calculator')" id="nav-calculator" class="nav-tab py-3 px-4 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-2">
+                🥑 Nutrição & Água
+            </button>
+            <button onclick="switchTab('guide')" id="nav-guide" class="nav-tab py-3 px-4 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-2">
+                🛠️ Guia de Equipamentos
+            </button>
+        </nav>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+        <!-- 1. DASHBOARD & MINDSET TAB -->
+        <section id="tab-dashboard" class="space-y-6">
+            <!-- Hero Banner -->
+            <div id="hero-banner" class="bg-gradient-to-r from-red-950/60 via-slate-900 to-slate-900 border border-red-500/30 rounded-2xl p-6 relative overflow-hidden shadow-2xl">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
+                    <div class="space-y-2">
+                        <div id="hero-tag" class="inline-flex items-center gap-2 bg-red-500/10 border border-red-500/30 px-3 py-1 rounded-full text-xs font-bold text-red-400">
+                            ⚡ PERDA DE GORDURA & MASSA MAGRA
+                        </div>
+                        <h2 id="hero-quote" class="text-2xl sm:text-3xl font-extrabold text-white">"A disciplina compensa a falta de motivação."</h2>
+                        <p id="hero-sub" class="text-sm text-slate-400 max-w-2xl">
+                            Seu objetivo é secar e preservar massa magra. Mantenha o foco nas pequenas vitórias diárias.
+                        </p>
+                    </div>
+
+                    <!-- Streak Counter Card -->
+                    <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl text-center min-w-[160px] w-full md:w-auto shadow-inner">
+                        <span class="text-xs uppercase font-bold text-slate-400 block tracking-wider">Ofensiva Atual</span>
+                        <div class="flex items-center justify-center gap-1 my-1">
+                            <span id="streak-counter" class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-400">0</span>
+                            <span class="text-2xl">🔥</span>
+                        </div>
+                        <span class="text-[11px] text-slate-400">Dias Seguidos em Foco</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid Layout for Habits and Quick Summary -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Daily Non-Negotiable Habits Checklist -->
+                <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            <span>📋</span> Compromissos Innegociáveis do Dia
+                        </h3>
+                        <span id="habits-progress-text" class="text-xs font-semibold text-slate-400">0/4 Concluídos</span>
+                    </div>
+
+                    <div id="habits-container" class="space-y-3">
+                        <!-- Gerado via JS de acordo com o perfil -->
+                    </div>
+                </div>
+
+                <!-- Quick Metrics Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                            <span>📈</span> Resumo do Progresso
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-800">
+                                <span class="text-xs text-slate-400 uppercase font-semibold block">Último Peso Registrado</span>
+                                <div class="flex items-baseline justify-between mt-1">
+                                    <span id="dash-weight-display" class="text-2xl font-black text-white">-- kg</span>
+                                    <span id="dash-weight-diff" class="text-xs font-bold text-slate-400">--</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-800">
+                                <span class="text-xs text-slate-400 uppercase font-semibold block">Água Ingerida Hoje</span>
+                                <div class="flex items-baseline justify-between mt-1">
+                                    <span id="dash-water-display" class="text-2xl font-black text-blue-400">0 ml</span>
+                                    <span id="dash-water-target" class="text-xs text-slate-400">Meta: 3500ml</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="switchTab('workouts')" id="btn-start-workout" class="mt-6 w-full py-3 bg-gradient-to-r from-red-600 to-orange-500 text-white font-bold text-sm rounded-xl shadow-lg transition">
+                        Iniciar Treino do Dia →
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. WORKOUTS & SPINNING TAB -->
+        <section id="tab-workouts" class="space-y-6 hidden">
+            <!-- Day Selector Tabs -->
+            <div id="workout-day-selector" class="flex overflow-x-auto space-x-2 border-b border-slate-800 pb-3 text-xs sm:text-sm no-scrollbar">
+                <!-- Gerado via JS -->
+            </div>
+
+            <!-- Workout Content Container -->
+            <div id="workout-content" class="space-y-6">
+                <!-- Injected via JavaScript -->
+            </div>
+        </section>
+
+        <!-- 3. BODY EVOLUTION TAB -->
+        <section id="tab-evolution" class="space-y-6 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Registration Form -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <span>⚖️</span> Novo Registro de Medidas
+                    </h3>
+
+                    <div>
+                        <label class="text-xs text-slate-400 font-semibold block mb-1">Peso Atual (kg)</label>
+                        <input type="number" step="0.1" id="evo-input-weight" placeholder="Ex: 85.5" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-red-500">
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-slate-400 font-semibold block mb-1">% Gordura Estimado (Opcional)</label>
+                        <input type="number" step="0.1" id="evo-input-fat" placeholder="Ex: 22.5" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-red-500">
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-slate-400 font-semibold block mb-1">Circunferência Abdominal (cm)</label>
+                        <input type="number" step="0.5" id="evo-input-waist" placeholder="Ex: 94" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-red-500">
+                    </div>
+
+                    <button onclick="saveEvolutionEntry()" id="btn-save-evo" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-bold text-sm rounded-xl shadow-lg transition">
+                        Salvar Medidas
+                    </button>
+                </div>
+
+                <!-- History Table & Stats -->
+                <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            <span>📜</span> Histórico de Medidas
+                        </h3>
+                        <button onclick="clearEvolutionHistory()" class="text-xs text-slate-500 hover:text-red-400 transition">Limpar Histórico</button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-800/80 text-slate-400 uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3">Data</th>
+                                    <th class="p-3">Peso</th>
+                                    <th class="p-3">Diferença Inicial</th>
+                                    <th class="p-3">Cintura</th>
+                                    <th class="p-3">% BF</th>
+                                    <th class="p-3 text-right">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="evolution-table-body" class="divide-y divide-slate-800">
+                                <!-- Injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. METABOLIC CALCULATOR & NUTRITION TAB -->
+        <section id="tab-calculator" class="space-y-6 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- TDEE Calculator Form -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <span>🔥</span> Calculadora de Gasto Energético (TDEE)
+                    </h3>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-xs text-slate-400 font-semibold block mb-1">Idade</label>
+                            <input type="number" id="calc-age" value="30" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-red-500">
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 font-semibold block mb-1">Altura (cm)</label>
+                            <input type="number" id="calc-height" value="175" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-red-500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-xs text-slate-400 font-semibold block mb-1">Peso Atual (kg)</label>
+                            <input type="number" id="calc-weight" value="85" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-red-500">
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 font-semibold block mb-1">Sexo Biológico</label>
+                            <select id="calc-gender" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-red-500">
+                                <option value="male">Masculino</option>
+                                <option value="female">Feminino</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-slate-400 font-semibold block mb-1">Nível de Atividade</label>
+                        <select id="calc-activity" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-red-500">
+                            <option value="1.375">Levemente Ativo (Musculação 3-5x/semana)</option>
+                            <option value="1.55">Moderadamente Ativo (Musculação + Spinning 5x)</option>
+                            <option value="1.725">Muito Ativo (Treino Intenso Diário)</option>
+                        </select>
+                    </div>
+
+                    <button onclick="calculateMetabolism()" id="btn-calc-metabolism" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-bold text-sm rounded-xl shadow-lg transition">
+                        Calcular Metas Metabólicas
+                    </button>
+
+                    <!-- Results Output -->
+                    <div id="calc-results" class="bg-slate-800/80 p-4 rounded-xl border border-slate-700 space-y-2 mt-4 hidden">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-400">Metabolismo Basal (BMR):</span>
+                            <span id="res-bmr" class="font-mono font-bold text-white">0 kcal</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-400">Gasto Total (TDEE):</span>
+                            <span id="res-tdee" class="font-mono font-bold text-white">0 kcal</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs border-t border-slate-700 pt-2">
+                            <span class="text-red-400 font-bold">Meta Calórica:</span>
+                            <span id="res-target" class="font-mono font-black text-red-400 text-base">0 kcal</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-emerald-400 font-bold">Proteína Diária:</span>
+                            <span id="res-protein" class="font-mono font-bold text-emerald-400">0 g</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Daily Water Intake Tracker -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg flex flex-col justify-between space-y-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2 mb-2">
+                            <span>💧</span> Controle de Hidratação Diária
+                        </h3>
+                        <p class="text-xs text-slate-400">
+                            A hidratação constante mantém a oxigenação, metabolismo e oxidação lipídica ativos.
+                        </p>
+
+                        <div class="mt-6 text-center">
+                            <span id="water-current-amount" class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">0</span>
+                            <span class="text-lg font-bold text-slate-400"> / <span id="water-target-amount">3500</span> ml</span>
+                            
+                            <div class="w-full bg-slate-800 h-3 rounded-full mt-4 overflow-hidden border border-slate-700">
+                                <div id="water-progress-bar" class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full w-0 transition-all duration-300"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="addWater(250)" class="py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-blue-400 font-bold text-sm rounded-xl transition flex items-center justify-center gap-2">
+                                🥤 +250ml Copo
+                            </button>
+                            <button onclick="addWater(500)" class="py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-blue-400 font-bold text-sm rounded-xl transition flex items-center justify-center gap-2">
+                                🧴 +500ml Squeeze
+                            </button>
+                        </div>
+                        <button onclick="resetWater()" class="w-full py-2 text-xs text-slate-500 hover:text-slate-300 transition">
+                            Resetar Contador Diário de Água
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. EQUIPMENT & SAFETY GUIDE TAB -->
+        <section id="tab-guide" class="space-y-6 hidden">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-6">
+                <div>
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2 mb-2">
+                        <span>🛠️</span> Guia Prático: Kit Roccia Prime 6-em-1 & Bike Rmira
+                    </h3>
+                    <p class="text-sm text-slate-400">
+                        Configurações rápidas para manter a máxima eficiência e segurança no treino de ambos.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700 space-y-2">
+                        <span class="text-xs font-bold text-red-400 uppercase tracking-wider block">Configuração 1</span>
+                        <h4 class="font-bold text-white text-base">Halteres Ajustáveis</h4>
+                        <p class="text-xs text-slate-300">
+                            Rosqueie as anilhas proporcionalmente. Verifique a trava de rosca antes dos exercícios de empurrar sobre o peitoral e ombros.
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700 space-y-2">
+                        <span class="text-xs font-bold text-orange-400 uppercase tracking-wider block">Configuração 2</span>
+                        <h4 class="font-bold text-white text-base">Barra Conectada</h4>
+                        <p class="text-xs text-slate-300">
+                            Encaixe o tubo acolchoado de conector. Ideal para Supino no Chão, Stiff e Remadas Curvadas.
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700 space-y-2">
+                        <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider block">Configuração 3</span>
+                        <h4 class="font-bold text-white text-base">Kettlebell & Apoios</h4>
+                        <p class="text-xs text-slate-300">
+                            Monte a base de Kettlebell para Agachamentos Sumô e Goblet. Ótimo para abertura de quadril e mobilidade.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-800 pt-6 space-y-3">
+                    <h4 class="font-bold text-white text-md flex items-center gap-2">
+                        <span>🛡️</span> Regras de Ouro
+                    </h4>
+                    <ul class="list-disc list-inside text-xs text-slate-300 space-y-2">
+                        <li><strong class="text-slate-100">Postura Alinhada:</strong> Mantenha a coluna neutra e evite prender a respiração (manobra de Valsalva), especialmente durante a gestação.</li>
+                        <li><strong class="text-slate-100">Ajuste de Selim na Bike:</strong> O selim deve estar na altura da crista ilíaca. O joelho não deve travar 100% no ponto mais baixo.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t border-slate-800 py-4 text-center text-xs text-slate-500 mt-auto">
+        <p>Pessoal - Foco & Performance © 2026 | Sistema Integrado Rafael & Flaviane</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        let currentProfile = 'rafael';
+        let currentWorkoutDay = 'A';
+
+        // --- DATA STRUCTURE FOR RAFAEL & FLAVIANE ---
+        const profilesData = {
+            rafael: {
+                name: "Rafael",
+                badge: "RAFAEL",
+                badgeClass: "bg-red-500/10 text-red-400 border-red-500/20",
+                buttonClass: "bg-red-600 text-white shadow",
+                accentColor: "red",
+                heroTag: "⚡ PERDA DE GORDURA & MASSA MAGRA",
+                heroQuote: '"A disciplina compensa a falta de motivação."',
+                heroSub: "Seu objetivo é secar e preservar massa magra. Foco nas vitórias diárias.",
+                waterTarget: 3500,
+                habits: [
+                    { id: "h_work", label: "Treino de Força & Cardio Cumpridos", sub: "Kit Roccia Prime + Sessão na Bike Rmira" },
+                    { id: "h_diet", label: "Dieta Limpa & Proteína Alta", sub: "Sem açúcar/doces processados. Frutas no lugar de doce." },
+                    { id: "h_water", label: "Meta de Hidratação Batida", sub: "Mínimo de 3.5 Litros de água ao longo do dia" },
+                    { id: "h_sleep", label: "Sono de Qualidade (7h-8h)", sub: "Recuperação muscular e regulação hormonal" }
+                ],
+                days: ['A', 'B', 'C', 'D', 'E'],
+                workouts: {
+                    A: {
+                        title: "Treino A: Push (Peito, Ombros, Tríceps) + Bike Z2",
+                        bike: { type: "Spinning Z2", duration: "25-30 min", rpm: "75-85 RPM", resistance: "Moderada", desc: "Queima contínua pós-musculação." },
+                        exercises: [
+                            { id: "r_a1", name: "Supino Reto no Chão", mode: "Barra Conectada (15-25kg)", series: 4, reps: "10-12", tip: "Empurre a barra controlando a descida." },
+                            { id: "r_a2", name: "Desenvolvimento de Ombros", mode: "Halteres (2x)", series: 4, reps: "10-12", tip: "Eleve os pesos sem curvar as costas." },
+                            { id: "r_a3", name: "Crucifixo Reto no Chão", mode: "Halteres (2x)", series: 3, reps: "12-15", tip: "Abra os braços sentindo o peitoral." },
+                            { id: "r_a4", name: "Elevação Lateral", mode: "Halteres Leves", series: 4, reps: "12-15", tip: "Foco no deltoide lateral." },
+                            { id: "r_a5", name: "Tríceps Testa", mode: "Barra ou Halteres", series: 3, reps: "12", tip: "Dobre apenas os cotovelos." }
+                        ]
+                    },
+                    B: {
+                        title: "Treino B: Pull (Costas, Bíceps, Trapézio) + Bike HIIT",
+                        bike: { type: "HIIT na Bike Rmira (30s / 30s)", duration: "18-20 min", rpm: "Tiros 100+ RPM", resistance: "Alta nos Tiros", desc: "Use o timer HIIT do topo." },
+                        exercises: [
+                            { id: "r_b1", name: "Remada Curvada", mode: "Barra Conectada", series: 4, reps: "10-12", tip: "Tronco inclinado e coluna reta." },
+                            { id: "r_b2", name: "Remada Unilateral (Serrote)", mode: "Halter Solto", series: 3, reps: "12", tip: "Puxe o halter rente ao quadril." },
+                            { id: "r_b3", name: "Kettlebell Swing", mode: "Kettlebell Montado", series: 4, reps: "15", tip: "Movimento explosivo de quadril." },
+                            { id: "r_b4", name: "Rosca Direta", mode: "Barra ou Halteres", series: 4, reps: "10-12", tip: "Cotovelos colados ao corpo." },
+                            { id: "r_b5", name: "Encolhimento de Ombros", mode: "Halteres Pesados", series: 3, reps: "15", tip: "Eleve os ombros rumo às orelhas." }
+                        ]
+                    },
+                    C: {
+                        title: "Treino C: Legs & Abs (Pernas Completo e Core)",
+                        bike: { type: "Giro Regenerativo", duration: "15 min", rpm: "80 RPM", resistance: "Leve", desc: "Soltar a musculatura das pernas." },
+                        exercises: [
+                            { id: "r_c1", name: "Agachamento Goblet", mode: "Kettlebell / Halter no Peito", series: 4, reps: "12-15", tip: "Agache fundo mantendo joelhos para fora." },
+                            { id: "r_c2", name: "Stiff (Levantamento Terra)", mode: "Barra Conectada", series: 4, reps: "10-12", tip: "Coluna 100% reta, quadril para trás." },
+                            { id: "r_c3", name: "Afundo / Passada", mode: "Halteres nas Mãos", series: 3, reps: "10 cada", tip: "Descida controlada do joelho de trás." },
+                            { id: "r_c4", name: "Elevação de Panturrilha", mode: "Com Halteres", series: 4, reps: "20", tip: "Pausa no topo de 1 segundo." },
+                            { id: "r_c5", name: "Abdominal Infra", mode: "Peso Corporal", series: 4, reps: "15-20", tip: "Eleve as pernas sem tirar a lombar do chão." }
+                        ]
+                    },
+                    D: {
+                        title: "Treino D: Upper Body + Bike HIIT",
+                        bike: { type: "HIIT na Bike Rmira", duration: "20 min", rpm: "Tiros Explosivos", resistance: "Alta", desc: "Aceleração do metabolismo pós-exercício." },
+                        exercises: [
+                            { id: "r_d1", name: "Desenvolvimento Arnold", mode: "Halteres (2x)", series: 4, reps: "10", tip: "Rode os punhos ao subir o peso." },
+                            { id: "r_d2", name: "Remada Alta", mode: "Barra Conectada", series: 3, reps: "12", tip: "Puxe a barra até a altura do peito." },
+                            { id: "r_d3", name: "Flexão de Braço", mode: "Pegadas do Kit no Chão", series: 3, reps: "Até a Falha", tip: "Use as pegadas para maior amplitude." },
+                            { id: "r_d4", name: "Rosca Martelo", mode: "Halteres (Pegada Neutra)", series: 3, reps: "12", tip: "Foco no braquial e antebraço." },
+                            { id: "r_d5", name: "Tríceps Coice", mode: "Halteres", series: 3, reps: "12-15", tip: "Estenda o cotovelo travando o braço." }
+                        ]
+                    },
+                    E: {
+                        title: "Treino E: Lower Body & Core + Bike Z2",
+                        bike: { type: "Spinning de Queima Estável", duration: "25 min", rpm: "80 RPM", resistance: "Moderada", desc: "Consolidação da queima lipídica semanal." },
+                        exercises: [
+                            { id: "r_e1", name: "Agachamento Sumô", mode: "Kettlebell Pesado", series: 4, reps: "12-15", tip: "Pés bem afastados apontados para fora." },
+                            { id: "r_e2", name: "Elevação Pélvica", mode: "Barra no Quadril", series: 4, reps: "12-15", tip: "Contraia forte os glúteos no topo." },
+                            { id: "r_e3", name: "Agachamento Búlgaro", mode: "Halteres (Pé na cadeira)", series: 3, reps: "8-10 cada", tip: "Excelente isolamento de glúteo/coxa." },
+                            { id: "r_e4", name: "Prancha Abdominal", mode: "Peso Corporal", series: 3, reps: "45-60s", tip: "Linha reta do corpo e abdômen travado." }
+                        ]
+                    }
+                }
+            },
+            flaviane: {
+                name: "Flaviane",
+                badge: "FLAVIANE",
+                badgeClass: "bg-pink-500/10 text-pink-400 border-pink-500/20",
+                buttonClass: "bg-pink-600 text-white shadow",
+                accentColor: "pink",
+                heroTag: "🌸 GESTACIONAL SEGURO & PREPARAÇÃO PARA O PARTO",
+                heroQuote: '"Cuidando da sua saúde e do desenvolvimento do seu bebê."',
+                heroSub: "Treino focado em postura, assoalho pélvico (Kegel), mobilidade de quadril e giro leve.",
+                waterTarget: 3000,
+                habits: [
+                    { id: "f_work", label: "Treino de Fortalecimento / Mobilidade", sub: "Com cargas leves e movimentos controlados" },
+                    { id: "f_pelvic", label: "Exercícios do Assoalho Pélvico (Kegel)", sub: "3 séries de 10 contrações sustentadas para o parto" },
+                    { id: "f_water", label: "Meta de Hidratação Diária (3.0L)", sub: "Fundamental para o volume amniótico e disposição" },
+                    { id: "f_diet", label: "Alimentação Nutritiva & Fibras", sub: "Proteínas magras, vegetais e hidratação" }
+                ],
+                days: ['A', 'B', 'C'],
+                workouts: {
+                    A: {
+                        title: "Treino A: Fortalecimento Superior & Postural",
+                        bike: { type: "Spinning Confortável / Leve", duration: "20 min", rpm: "70-80 RPM", resistance: "Muito Leve", desc: "Ritmo de conversa. Sem picos de esforço." },
+                        exercises: [
+                            { id: "f_a1", name: "Remada Curvada Leve", mode: "Halteres Leves (2x)", series: 3, reps: "12", tip: "Fortalece as costas e previne dores na lombar." },
+                            { id: "f_a2", name: "Desenvolvimento Sentada", mode: "Halteres Leves", series: 3, reps: "10-12", tip: "Faça sentada para maior estabilidade." },
+                            { id: "f_a3", name: "Rosca Bíceps Controlada", mode: "Halteres Leves", series: 3, reps: "12", tip: "Sem balançar o tronco." },
+                            { id: "f_a4", name: "Mobilidade Torácica / Gato-Vaca", mode: "No Colchonete", series: 3, reps: "10 ciclos", tip: "Alivia a pressão na coluna vertebral." }
+                        ]
+                    },
+                    B: {
+                        title: "Treino B: Preparação Pélvica & Membros Inferiores",
+                        bike: { type: "Caminhada ou Giro Leve", duration: "15-20 min", rpm: "Giro Livre", resistance: "Zero/Mínima", desc: "Apenas para ativar a circulação sanguínea." },
+                        exercises: [
+                            { id: "f_b1", name: "Agachamento Sumô (Abertura de Quadril)", mode: "Peso Corporal ou Halter Leve", series: 3, reps: "12", tip: "Excelente para preparar a bacia para o parto." },
+                            { id: "f_b2", name: "Elevação Pélvica (Ponte)", mode: "Deitada de Costas", series: 3, reps: "12-15", tip: "Fortalece glúteos e assoalho pélvico." },
+                            { id: "f_b3", name: "Ativação de Assoalho Pélvico (Kegel)", mode: "Sem Peso", series: 3, reps: "10 de 5 seg", tip: "Contraia os músculos do períneo como se segurasse o xixi." },
+                            { id: "f_b4", name: "Quatro Apoios com Elevação Lateral", mode: "Peso Corporal", series: 3, reps: "10 cada lado", tip: "Estabiliza o quadril e glúteo médio." }
+                        ]
+                    },
+                    C: {
+                        title: "Treino C: Spinning Leve & Alongamento Pélvico",
+                        bike: { type: "Spinning Regenerativo Continuo", duration: "25 min", rpm: "75 RPM", resistance: "Leve", desc: "Mantenha a respiração 100% fluida." },
+                        exercises: [
+                            { id: "f_c1", name: "Agachamento Goblet Leve", mode: "Halter Curto", series: 3, reps: "10", tip: "Desça até onde se sentir confortável." },
+                            { id: "f_c2", name: "Alongamento em Borboleta", mode: "Sentada no Chão", series: 3, reps: "45 segundos", tip: "Abre a virilha e relaxa a musculatura pélvica." },
+                            { id: "f_c3", name: "Elevação de Panturrilha Sentada/Em pé", mode: "Apoio na Parede", series: 3, reps: "15", tip: "Auxilia no retorno venoso e reduz inchaços." }
+                        ]
+                    }
+                }
+            }
+        };
+
+        // --- PROFILE SWITCHER ---
+        function switchProfile(profile) {
+            currentProfile = profile;
+            const p = profilesData[profile];
+
+            // Header UI update
+            document.getElementById('profile-badge').textContent = p.badge;
+            document.getElementById('profile-badge').className = `text-xs font-semibold px-2 py-0.5 rounded ${p.badgeClass}`;
+
+            const btnR = document.getElementById('btn-profile-rafael');
+            const btnF = document.getElementById('btn-profile-flaviane');
+
+            if (profile === 'rafael') {
+                btnR.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-red-600 text-white shadow";
+                btnF.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white";
+                document.getElementById('btn-start-workout').className = "mt-6 w-full py-3 bg-gradient-to-r from-red-600 to-orange-500 text-white font-bold text-sm rounded-xl shadow-lg transition";
+                document.getElementById('btn-save-evo').className = "w-full py-3 bg-red-600 hover:bg-red-500 text-white font-bold text-sm rounded-xl shadow-lg transition";
+                document.getElementById('btn-calc-metabolism').className = "w-full py-3 bg-red-600 hover:bg-red-500 text-white font-bold text-sm rounded-xl shadow-lg transition";
+            } else {
+                btnR.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white";
+                btnF.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-pink-600 text-white shadow";
+                document.getElementById('btn-start-workout').className = "mt-6 w-full py-3 bg-gradient-to-r from-pink-600 to-rose-500 text-white font-bold text-sm rounded-xl shadow-lg transition";
+                document.getElementById('btn-save-evo').className = "w-full py-3 bg-pink-600 hover:bg-pink-500 text-white font-bold text-sm rounded-xl shadow-lg transition";
+                document.getElementById('btn-calc-metabolism').className = "w-full py-3 bg-pink-600 hover:bg-pink-500 text-white font-bold text-sm rounded-xl shadow-lg transition";
+            }
+
+            // Hero Banner update
+            document.getElementById('hero-tag').textContent = p.heroTag;
+            document.getElementById('hero-quote').textContent = p.heroQuote;
+            document.getElementById('hero-sub').textContent = p.heroSub;
+
+            currentWorkoutDay = p.days[0];
+
+            renderHabits();
+            renderWorkoutDaySelector();
+            loadWorkoutDay(currentWorkoutDay);
+            updateWaterDisplay();
+            renderEvolutionTable();
+            updateDashboardMetrics();
+        }
+
+        // --- TAB NAVIGATION ---
+        function switchTab(tabId) {
+            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.classList.remove('border-red-500', 'text-red-500', 'border-pink-500', 'text-pink-500');
+                btn.classList.add('border-transparent', 'text-slate-400');
+            });
+
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) {
+                activeNav.classList.remove('border-transparent', 'text-slate-400');
+                const colorClass = currentProfile === 'rafael' ? 'border-red-500 text-red-500' : 'border-pink-500 text-pink-500';
+                activeNav.className = `nav-tab py-3 px-4 border-b-2 ${colorClass} whitespace-nowrap flex items-center gap-2`;
+            }
+        }
+
+        // --- HABITS RENDERER ---
+        function renderHabits() {
+            const container = document.getElementById('habits-container');
+            const habits = profilesData[currentProfile].habits;
+
+            let html = '';
+            habits.forEach(h => {
+                const key = `${currentProfile}_${h.id}`;
+                const saved = localStorage.getItem(key) === 'true' ? 'checked' : '';
+                const accent = currentProfile === 'rafael' ? 'accent-red-500' : 'accent-pink-500';
+
+                html += `
+                <label class="flex items-center justify-between p-3.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-800 rounded-xl cursor-pointer transition">
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" id="${key}" ${saved} onchange="toggleHabit('${key}')" class="w-5 h-5 ${accent} rounded cursor-pointer">
+                        <div>
+                            <span class="font-semibold text-sm text-slate-200">${h.label}</span>
+                            <p class="text-xs text-slate-400">${h.sub}</p>
+                        </div>
+                    </div>
+                </label>
+                `;
+            });
+
+            container.innerHTML = html;
+            updateHabitsProgress();
+        }
+
+        function toggleHabit(key) {
+            const el = document.getElementById(key);
+            if(el) {
+                localStorage.setItem(key, el.checked ? 'true' : 'false');
+            }
+            updateHabitsProgress();
+        }
+
+        function updateHabitsProgress() {
+            const habits = profilesData[currentProfile].habits;
+            let completed = 0;
+
+            habits.forEach(h => {
+                const key = `${currentProfile}_${h.id}`;
+                if (localStorage.getItem(key) === 'true') completed++;
+            });
+
+            document.getElementById('habits-progress-text').textContent = `${completed}/${habits.length} Concluídos`;
+
+            let streak = parseInt(localStorage.getItem(`${currentProfile}_streak`) || '0');
+            document.getElementById('streak-counter').textContent = streak;
+        }
+
+        // --- WORKOUT SELECTOR & RENDERER ---
+        function renderWorkoutDaySelector() {
+            const container = document.getElementById('workout-day-selector');
+            const days = profilesData[currentProfile].days;
+
+            let html = '';
+            days.forEach(d => {
+                html += `
+                <button onclick="loadWorkoutDay('${d}')" id="btn-day-${d}" class="workout-day-btn px-4 py-2.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white font-bold transition whitespace-nowrap">
+                    Treino ${d}
+                </button>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function loadWorkoutDay(day) {
+            currentWorkoutDay = day;
+            const p = profilesData[currentProfile];
+            const data = p.workouts[day];
+
+            document.querySelectorAll('.workout-day-btn').forEach(btn => {
+                btn.classList.remove('bg-red-600', 'bg-pink-600', 'text-white');
+                btn.classList.add('bg-slate-800', 'text-slate-400');
+            });
+            
+            const activeBtn = document.getElementById(`btn-day-${day}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-slate-800', 'text-slate-400');
+                activeBtn.classList.add(currentProfile === 'rafael' ? 'bg-red-600' : 'bg-pink-600', 'text-white');
+            }
+
+            const container = document.getElementById('workout-content');
+            const badgeColor = currentProfile === 'rafael' ? 'text-red-400 border-red-500/30' : 'text-pink-400 border-pink-500/30';
+            const accentText = currentProfile === 'rafael' ? 'text-red-400' : 'text-pink-400';
+            const accent = currentProfile === 'rafael' ? 'accent-red-500' : 'accent-pink-500';
+
+            let html = `
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-6">
+                <div>
+                    <h2 class="text-xl font-black text-white mb-1">${data.title}</h2>
+                    <p class="text-xs text-slate-400">Anote os pesos utilizados para garantir a progressão de carga.</p>
+                </div>
+
+                <!-- Bike Card -->
+                <div class="bg-gradient-to-r from-slate-800 to-slate-800/80 p-4 sm:p-5 rounded-xl border ${badgeColor}">
+                    <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+                        <h3 class="text-base font-bold ${accentText} flex items-center gap-2">
+                            🚴 Sessão de Spinning Rmira (14kg)
+                        </h3>
+                        <span class="text-xs font-mono font-bold text-yellow-400 bg-yellow-950/50 px-2 py-0.5 rounded border border-yellow-500/30">${data.bike.duration}</span>
+                    </div>
+                    <p class="text-sm font-semibold text-slate-200">${data.bike.type}</p>
+                    <p class="text-xs text-slate-300 mt-1">${data.bike.desc}</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-xs bg-slate-900/60 p-2.5 rounded-lg text-slate-300">
+                        <p><strong class="text-slate-200">Cadência:</strong> ${data.bike.rpm}</p>
+                        <p><strong class="text-slate-200">Resistência:</strong> ${data.bike.resistance}</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Exercícios de Força & Mobilidade</h3>
+            `;
+
+            data.exercises.forEach(ex => {
+                const savedWeight = localStorage.getItem(`${currentProfile}_weight_${ex.id}`) || '';
+                const savedChecked = localStorage.getItem(`${currentProfile}_check_${ex.id}`) === 'true' ? 'checked' : '';
+
+                html += `
+                <div class="bg-slate-800/60 hover:bg-slate-800 border border-slate-700/70 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="check_${ex.id}" ${savedChecked} onchange="saveExerciseCheck('${ex.id}', this.checked)" class="w-5 h-5 ${accent} rounded cursor-pointer">
+                            <label for="check_${ex.id}" class="font-bold text-base text-white cursor-pointer">${ex.name}</label>
+                        </div>
+                        <p class="text-xs ${accentText} font-medium pl-8">${ex.mode}</p>
+                        <p class="text-xs text-slate-400 pl-8">${ex.tip}</p>
+                    </div>
+
+                    <div class="flex items-center gap-3 bg-slate-900/80 p-2 rounded-lg border border-slate-700/60 self-start sm:self-center">
+                        <div class="text-center px-2">
+                            <span class="text-[10px] text-slate-400 uppercase block font-semibold">Séries</span>
+                            <span class="text-sm font-bold text-slate-200">${ex.series}</span>
+                        </div>
+                        <div class="text-center border-x border-slate-700 px-3">
+                            <span class="text-[10px] text-slate-400 uppercase block font-semibold">Reps</span>
+                            <span class="text-sm font-bold text-slate-200">${ex.reps}</span>
+                        </div>
+                        <div class="text-center px-2">
+                            <span class="text-[10px] text-slate-400 uppercase block font-semibold">Carga (kg)</span>
+                            <input type="number" step="0.5" id="weight_${ex.id}" value="${savedWeight}" oninput="saveExerciseWeight('${ex.id}', this.value)" placeholder="0" class="w-16 text-center bg-slate-800 border border-slate-600 rounded text-white text-sm py-0.5 focus:outline-none focus:border-red-500">
+                        </div>
+                    </div>
+                </div>
+                `;
+            });
+
+            const btnBg = currentProfile === 'rafael' ? 'from-red-600 to-orange-500' : 'from-pink-600 to-rose-500';
+
+            html += `
+                </div>
+                <button onclick="finishWorkoutDay('${day}')" class="w-full py-3 bg-gradient-to-r ${btnBg} text-white font-bold text-sm rounded-xl shadow-lg transition">
+                    ✓ Concluir Treino de Hoje
+                </button>
+            </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function saveExerciseWeight(id, val) {
+            localStorage.setItem(`${currentProfile}_weight_${id}`, val);
+        }
+
+        function saveExerciseCheck(id, isChecked) {
+            localStorage.setItem(`${currentProfile}_check_${id}`, isChecked ? 'true' : 'false');
+        }
+
+        function finishWorkoutDay(day) {
+            alert(`Fantástico, ${profilesData[currentProfile].name}! Treino ${day} concluído com sucesso!`);
+        }
+
+        // --- GLOBAL TIMERS ---
+        let restTimerInterval = null;
+        function startRestTimer(seconds) {
+            clearInterval(restTimerInterval);
+            let left = seconds;
+            updateRestDisplay(left);
+
+            restTimerInterval = setInterval(() => {
+                left--;
+                updateRestDisplay(left);
+                if (left <= 0) {
+                    clearInterval(restTimerInterval);
+                    playBeepSound();
+                }
+            }, 1000);
+        }
+
+        function updateRestDisplay(sec) {
+            const m = String(Math.floor(sec / 60)).padStart(2, '0');
+            const s = String(sec % 60).padStart(2, '0');
+            document.getElementById('global-rest-display').textContent = `${m}:${s}`;
+        }
+
+        let hiitTimerInterval = null;
+        let hiitRunning = false;
+        let hiitPhase = "TIRO";
+        let hiitTime = 30;
+
+        function toggleHIITTimer() {
+            const btn = document.getElementById('hiit-toggle-btn');
+            if (hiitRunning) {
+                clearInterval(hiitTimerInterval);
+                hiitRunning = false;
+                btn.textContent = "Start";
+                btn.className = "text-[10px] bg-emerald-600 hover:bg-emerald-500 px-2 py-0.5 rounded text-white font-bold";
+            } else {
+                hiitRunning = true;
+                btn.textContent = "Pausa";
+                btn.className = "text-[10px] bg-yellow-600 hover:bg-yellow-500 px-2 py-0.5 rounded text-white font-bold";
+
+                hiitTimerInterval = setInterval(() => {
+                    hiitTime--;
+                    if (hiitTime < 0) {
+                        playBeepSound();
+                        hiitPhase = (hiitPhase === "TIRO") ? "DESCANSO" : "TIRO";
+                        hiitTime = 30;
+                    }
+                    updateHIITDisplay();
+                }, 1000);
+            }
+        }
+
+        function resetHIITTimer() {
+            clearInterval(hiitTimerInterval);
+            hiitRunning = false;
+            hiitPhase = "TIRO";
+            hiitTime = 30;
+            const btn = document.getElementById('hiit-toggle-btn');
+            btn.textContent = "Start";
+            btn.className = "text-[10px] bg-emerald-600 hover:bg-emerald-500 px-2 py-0.5 rounded text-white font-bold";
+            updateHIITDisplay();
+        }
+
+        function updateHIITDisplay() {
+            const label = document.getElementById('hiit-status-label');
+            const disp = document.getElementById('hiit-display');
+            disp.textContent = `00:${String(hiitTime).padStart(2, '0')}`;
+
+            if (hiitPhase === "TIRO") {
+                label.textContent = "🔥 TIRO ACELERA!";
+                label.className = "text-[10px] font-bold text-red-400 uppercase tracking-wider block";
+                disp.className = "text-sm font-mono font-bold text-red-400";
+            } else {
+                label.textContent = "💤 DESCANSO LEVE";
+                label.className = "text-[10px] font-bold text-emerald-400 uppercase tracking-wider block";
+                disp.className = "text-sm font-mono font-bold text-emerald-400";
+            }
+        }
+
+        function playBeepSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(880, ctx.currentTime);
+                osc.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.35);
+            } catch(e) {}
+        }
+
+        // --- BODY EVOLUTION LOGIC ---
+        function saveEvolutionEntry() {
+            const w = parseFloat(document.getElementById('evo-input-weight').value);
+            const fat = document.getElementById('evo-input-fat').value;
+            const waist = document.getElementById('evo-input-waist').value;
+
+            if (!w) {
+                alert("Por favor, preencha ao menos o campo de Peso (kg).");
+                return;
+            }
+
+            const key = `${currentProfile}_evolutionHistory`;
+            const history = JSON.parse(localStorage.getItem(key) || '[]');
+            const entry = {
+                id: Date.now(),
+                date: new Date().toLocaleDateString('pt-BR'),
+                weight: w,
+                fat: fat || '--',
+                waist: waist || '--'
+            };
+
+            history.unshift(entry);
+            localStorage.setItem(key, JSON.stringify(history));
+
+            document.getElementById('evo-input-weight').value = '';
+            document.getElementById('evo-input-fat').value = '';
+            document.getElementById('evo-input-waist').value = '';
+
+            renderEvolutionTable();
+            updateDashboardMetrics();
+        }
+
+        function renderEvolutionTable() {
+            const key = `${currentProfile}_evolutionHistory`;
+            const history = JSON.parse(localStorage.getItem(key) || '[]');
+            const tbody = document.getElementById('evolution-table-body');
+
+            if (history.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500">Nenhum registro salvo ainda para ${profilesData[currentProfile].name}.</td></tr>`;
+                return;
+            }
+
+            const initialWeight = history[history.length - 1].weight;
+
+            let html = '';
+            history.forEach(item => {
+                const diff = (item.weight - initialWeight).toFixed(1);
+                const diffText = diff > 0 ? `+${diff} kg` : `${diff} kg`;
+                const diffClass = diff <= 0 ? 'text-emerald-400 font-bold' : 'text-red-400 font-bold';
+
+                html += `
+                <tr class="hover:bg-slate-800/40">
+                    <td class="p-3">${item.date}</td>
+                    <td class="p-3 font-bold text-white">${item.weight} kg</td>
+                    <td class="p-3 ${diffClass}">${diffText}</td>
+                    <td class="p-3">${item.waist} cm</td>
+                    <td class="p-3">${item.fat} %</td>
+                    <td class="p-3 text-right">
+                        <button onclick="deleteEvolutionEntry(${item.id})" class="text-red-400 hover:text-red-300">Excluir</button>
+                    </td>
+                </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function deleteEvolutionEntry(id) {
+            const key = `${currentProfile}_evolutionHistory`;
+            let history = JSON.parse(localStorage.getItem(key) || '[]');
+            history = history.filter(item => item.id !== id);
+            localStorage.setItem(key, JSON.stringify(history));
+            renderEvolutionTable();
+            updateDashboardMetrics();
+        }
+
+        function clearEvolutionHistory() {
+            if (confirm(`Tem certeza que deseja apagar todo o histórico de ${profilesData[currentProfile].name}?`)) {
+                localStorage.removeItem(`${currentProfile}_evolutionHistory`);
+                renderEvolutionTable();
+                updateDashboardMetrics();
+            }
+        }
+
+        function updateDashboardMetrics() {
+            const key = `${currentProfile}_evolutionHistory`;
+            const history = JSON.parse(localStorage.getItem(key) || '[]');
+            const dispWeight = document.getElementById('dash-weight-display');
+            const dispDiff = document.getElementById('dash-weight-diff');
+
+            if (history.length > 0) {
+                const latest = history[0].weight;
+                const initial = history[history.length - 1].weight;
+                const diff = (latest - initial).toFixed(1);
+
+                dispWeight.textContent = `${latest} kg`;
+                dispDiff.textContent = diff <= 0 ? `${diff} kg` : `+${diff} kg`;
+                dispDiff.className = diff <= 0 ? 'text-xs font-bold text-emerald-400' : 'text-xs font-bold text-red-400';
+            } else {
+                dispWeight.textContent = '-- kg';
+                dispDiff.textContent = '--';
+            }
+        }
+
+        // --- CALCULATOR ---
+        function calculateMetabolism() {
+            const age = parseFloat(document.getElementById('calc-age').value) || 30;
+            const height = parseFloat(document.getElementById('calc-height').value) || 175;
+            const weight = parseFloat(document.getElementById('calc-weight').value) || 85;
+            const gender = document.getElementById('calc-gender').value;
+            const activity = parseFloat(document.getElementById('calc-activity').value);
+
+            let bmr = 0;
+            if (gender === 'male') {
+                bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+            } else {
+                bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+            }
+
+            const tdee = bmr * activity;
+            const targetDeficit = currentProfile === 'rafael' ? tdee - 500 : tdee;
+            const proteinGoal = weight * (currentProfile === 'rafael' ? 2.0 : 1.6);
+
+            document.getElementById('res-bmr').textContent = `${Math.round(bmr)} kcal`;
+            document.getElementById('res-tdee').textContent = `${Math.round(tdee)} kcal`;
+            document.getElementById('res-target').textContent = `${Math.round(targetDeficit)} kcal`;
+            document.getElementById('res-protein').textContent = `${Math.round(proteinGoal)} g`;
+
+            document.getElementById('calc-results').classList.remove('hidden');
+
+            const waterTarget = Math.round(weight * 40);
+            localStorage.setItem(`${currentProfile}_waterTarget`, waterTarget.toString());
+            updateWaterDisplay();
+        }
+
+        // --- WATER TRACKER ---
+        function addWater(amount) {
+            const key = `${currentProfile}_waterToday`;
+            let current = parseInt(localStorage.getItem(key) || '0');
+            current += amount;
+            localStorage.setItem(key, current.toString());
+            updateWaterDisplay();
+        }
+
+        function resetWater() {
+            localStorage.setItem(`${currentProfile}_waterToday`, '0');
+            updateWaterDisplay();
+        }
+
+        function updateWaterDisplay() {
+            const current = parseInt(localStorage.getItem(`${currentProfile}_waterToday`) || '0');
+            const target = parseInt(localStorage.getItem(`${currentProfile}_waterTarget`) || profilesData[currentProfile].waterTarget.toString());
+
+            document.getElementById('water-current-amount').textContent = current;
+            document.getElementById('water-target-amount').textContent = target;
+
+            const percent = Math.min(100, Math.round((current / target) * 100));
+            document.getElementById('water-progress-bar').style.width = `${percent}%`;
+
+            document.getElementById('dash-water-display').textContent = `${current} ml`;
+            document.getElementById('dash-water-target').textContent = `Meta: ${target}ml`;
+        }
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            switchProfile('rafael');
+        };
+    </script>
+</body>
+</html>

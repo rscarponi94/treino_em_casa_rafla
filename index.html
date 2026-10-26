@@ -163,12 +163,11 @@
         </section>
     </main>
 
-    <!-- FIREBASE SDK & APP LOGIC -->
+    <!-- FIREBASE & APP LOGIC (GLOBAL) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // CONFIGURAÇÃO EXTRAÍDA DA SUA IMAGEM:
         const firebaseConfig = {
             apiKey: "AIzaSyCEO-uLufier5HF2s5FLkcc2lwxvSzIyhI",
             authDomain: "treinorafla.firebaseapp.com",
@@ -182,8 +181,284 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        window.currentProfile = 'rafael';
+        // MAPA DE DADOS COMPLETO DOS TREINOS
+        const profilesData = {
+            rafael: {
+                name: "Rafael", badge: "RAFAEL", badgeClass: "bg-red-500/10 text-red-400 border-red-500/20",
+                heroTag: "⚡ PERDA DE GORDURA & MASSA MAGRA", heroQuote: '"A disciplina compensa a falta de motivação."',
+                heroSub: "Seu objetivo é secar e preservar massa magra. Foco nas vitórias diárias.",
+                habits: [
+                    { id: "h_work", label: "Treino de Força & Cardio Cumpridos", sub: "Kit Roccia Prime + Bike Rmira" },
+                    { id: "h_diet", label: "Dieta Limpa & Proteína Alta", sub: "Sem doces processados. Frutas no lugar." },
+                    { id: "h_water", label: "Meta de Hidratação Batida", sub: "Mínimo 3.5 Litros" },
+                    { id: "h_sleep", label: "Sono de Qualidade (7h-8h)", sub: "Recuperação muscular e hormônios" }
+                ],
+                days: ['A', 'B', 'C', 'D', 'E'],
+                workouts: {
+                    A: {
+                        title: "Treino A: Push (Peito, Ombros, Tríceps) + Bike Z2",
+                        bike: { type: "Spinning Z2", duration: "25-30 min", rpm: "75-85 RPM", resistance: "Moderada", desc: "Queima contínua pós-musculação." },
+                        exercises: [
+                            { id: "r_a1", name: "Supino Reto no Chão", mode: "Barra Conectada (15-25kg)", series: 4, reps: "10-12", tip: "Empurre a barra controlando a descida." },
+                            { id: "r_a2", name: "Desenvolvimento de Ombros", mode: "Halteres (2x)", series: 4, reps: "10-12", tip: "Eleve os pesos sem curvar as costas." },
+                            { id: "r_a3", name: "Crucifixo Reto no Chão", mode: "Halteres (2x)", series: 3, reps: "12-15", tip: "Abra os braços sentindo o peitoral." },
+                            { id: "r_a4", name: "Elevação Lateral", mode: "Halteres Leves", series: 4, reps: "12-15", tip: "Foco no deltoide lateral." },
+                            { id: "r_a5", name: "Tríceps Testa", mode: "Barra ou Halteres", series: 3, reps: "12", tip: "Dobre apenas os cotovelos." }
+                        ]
+                    },
+                    B: {
+                        title: "Treino B: Pull (Costas, Bíceps, Trapézio) + Bike HIIT",
+                        bike: { type: "HIIT na Bike Rmira (30s / 30s)", duration: "18-20 min", rpm: "Tiros 100+ RPM", resistance: "Alta nos Tiros", desc: "Use o timer HIIT do topo." },
+                        exercises: [
+                            { id: "r_b1", name: "Remada Curvada", mode: "Barra Conectada", series: 4, reps: "10-12", tip: "Tronco inclinado e coluna reta." },
+                            { id: "r_b2", name: "Remada Unilateral (Serrote)", mode: "Halter Solto", series: 3, reps: "12", tip: "Puxe o halter rente ao quadril." },
+                            { id: "r_b3", name: "Kettlebell Swing", mode: "Kettlebell Montado", series: 4, reps: "15", tip: "Movimento explosivo de quadril." },
+                            { id: "r_b4", name: "Rosca Direta", mode: "Barra ou Halteres", series: 4, reps: "10-12", tip: "Cotovelos colados ao corpo." },
+                            { id: "r_b5", name: "Encolhimento de Ombros", mode: "Halteres Pesados", series: 3, reps: "15", tip: "Eleve os ombros rumo às orelhas." }
+                        ]
+                    },
+                    C: {
+                        title: "Treino C: Legs & Abs (Pernas Completo e Core)",
+                        bike: { type: "Giro Regenerativo", duration: "15 min", rpm: "80 RPM", resistance: "Leve", desc: "Soltar a musculatura das pernas." },
+                        exercises: [
+                            { id: "r_c1", name: "Agachamento Goblet", mode: "Kettlebell / Halter no Peito", series: 4, reps: "12-15", tip: "Agache fundo mantendo joelhos para fora." },
+                            { id: "r_c2", name: "Stiff (Levantamento Terra)", mode: "Barra Conectada", series: 4, reps: "10-12", tip: "Coluna 100% reta, quadril para trás." },
+                            { id: "r_c3", name: "Afundo / Passada", mode: "Halteres nas Mãos", series: 3, reps: "10 cada", tip: "Descida controlada do joelho de trás." },
+                            { id: "r_c4", name: "Elevação de Panturrilha", mode: "Com Halteres", series: 4, reps: "20", tip: "Pausa no topo de 1 segundo." },
+                            { id: "r_c5", name: "Abdominal Infra", mode: "Peso Corporal", series: 4, reps: "15-20", tip: "Eleve as pernas sem tirar a lombar do chão." }
+                        ]
+                    },
+                    D: {
+                        title: "Treino D: Upper Body + Bike HIIT",
+                        bike: { type: "HIIT na Bike Rmira", duration: "20 min", rpm: "Tiros Explosivos", resistance: "Alta", desc: "Aceleração do metabolismo pós-exercício." },
+                        exercises: [
+                            { id: "r_d1", name: "Desenvolvimento Arnold", mode: "Halteres (2x)", series: 4, reps: "10", tip: "Rode os punhos ao subir o peso." },
+                            { id: "r_d2", name: "Remada Alta", mode: "Barra Conectada", series: 3, reps: "12", tip: "Puxe a barra até a altura do peito." },
+                            { id: "r_d3", name: "Flexão de Braço", mode: "Pegadas do Kit no Chão", series: 3, reps: "Até a Falha", tip: "Use as pegadas para maior amplitude." },
+                            { id: "r_d4", name: "Rosca Martelo", mode: "Halteres (Pegada Neutra)", series: 3, reps: "12", tip: "Foco no braquial e antebraço." },
+                            { id: "r_d5", name: "Tríceps Coice", mode: "Halteres", series: 3, reps: "12-15", tip: "Estenda o cotovelo travando o braço." }
+                        ]
+                    },
+                    E: {
+                        title: "Treino E: Lower Body & Core + Bike Z2",
+                        bike: { type: "Spinning de Queima Estável", duration: "25 min", rpm: "80 RPM", resistance: "Moderada", desc: "Consolidação da queima lipídica semanal." },
+                        exercises: [
+                            { id: "r_e1", name: "Agachamento Sumô", mode: "Kettlebell Pesado", series: 4, reps: "12-15", tip: "Pés bem afastados apontados para fora." },
+                            { id: "r_e2", name: "Elevação Pélvica", mode: "Barra no Quadril", series: 4, reps: "12-15", tip: "Contraia forte os glúteos no topo." },
+                            { id: "r_e3", name: "Agachamento Búlgaro", mode: "Halteres (Pé na cadeira)", series: 3, reps: "8-10 cada", tip: "Excelente isolamento de glúteo/coxa." },
+                            { id: "r_e4", name: "Prancha Abdominal", mode: "Peso Corporal", series: 3, reps: "45-60s", tip: "Linha reta do corpo e abdômen travado." }
+                        ]
+                    }
+                }
+            },
+            flaviane: {
+                name: "Flaviane", badge: "FLAVIANE", badgeClass: "bg-pink-500/10 text-pink-400 border-pink-500/20",
+                heroTag: "🌸 GESTACIONAL SEGURO & PREPARAÇÃO PARA O PARTO", heroQuote: '"Cuidando da sua saúde e do bebê."',
+                heroSub: "Postura, assoalho pélvico (Kegel), mobilidade de quadril e giro leve.",
+                habits: [
+                    { id: "f_work", label: "Treino de Fortalecimento / Mobilidade", sub: "Movimentos leves e controlados" },
+                    { id: "f_pelvic", label: "Exercícios de Assoalho Pélvico (Kegel)", sub: "3x 10 contrações sustentadas" },
+                    { id: "f_water", label: "Meta de Hidratação Diária (3.0L)", sub: "Vital para o volume amniótico" },
+                    { id: "f_diet", label: "Alimentação Nutritiva & Fibras", sub: "Proteínas magras e vegetais" }
+                ],
+                days: ['A', 'B', 'C'],
+                workouts: {
+                    A: {
+                        title: "Treino A: Fortalecimento Superior & Postural",
+                        bike: { type: "Spinning Leve", duration: "20 min", rpm: "70-80 RPM", resistance: "Muito Leve", desc: "Ritmo de conversa. Sem exaustão." },
+                        exercises: [
+                            { id: "f_a1", name: "Remada Curvada Leve", mode: "Halteres Leves (2x)", series: 3, reps: "12", tip: "Previne dores na lombar." },
+                            { id: "f_a2", name: "Desenvolvimento Sentada", mode: "Halteres Leves", series: 3, reps: "10-12", tip: "Faça sentada para estabilidade." },
+                            { id: "f_a3", name: "Rosca Bíceps Controlada", mode: "Halteres Leves", series: 3, reps: "12", tip: "Sem balançar o tronco." },
+                            { id: "f_a4", name: "Mobilidade Torácica / Gato-Vaca", mode: "No Colchonete", series: 3, reps: "10 ciclos", tip: "Alivia a pressão na coluna." }
+                        ]
+                    },
+                    B: {
+                        title: "Treino B: Preparação Pélvica & Membros Inferiores",
+                        bike: { type: "Giro Livre Leve", duration: "15-20 min", rpm: "Giro Livre", resistance: "Mínima", desc: "Ativa a circulação sanguínea." },
+                        exercises: [
+                            { id: "f_b1", name: "Agachamento Sumô (Abertura de Quadril)", mode: "Peso Corporal ou Halter Leve", series: 3, reps: "12", tip: "Prepara a bacia para o parto." },
+                            { id: "f_b2", name: "Elevação Pélvica (Ponte)", mode: "Deitada de Costas", series: 3, reps: "12-15", tip: "Fortalece glúteos e assoalho pélvico." },
+                            { id: "f_b3", name: "Ativação de Assoalho Pélvico (Kegel)", mode: "Sem Peso", series: 3, reps: "10 de 5 seg", tip: "Contraia o períneo segurando o xixi." },
+                            { id: "f_b4", name: "Quatro Apoios com Elevação Lateral", mode: "Peso Corporal", series: 3, reps: "10 cada lado", tip: "Estabiliza quadril e glúteo." }
+                        ]
+                    },
+                    C: {
+                        title: "Treino C: Spinning Leve & Alongamento Pélvico",
+                        bike: { type: "Spinning Regenerativo", duration: "25 min", rpm: "75 RPM", resistance: "Leve", desc: "Respiração 100% fluida." },
+                        exercises: [
+                            { id: "f_c1", name: "Agachamento Goblet Leve", mode: "Halter Curto", series: 3, reps: "10", tip: "Desça até onde for confortável." },
+                            { id: "f_c2", name: "Alongamento em Borboleta", mode: "Sentada no Chão", series: 3, reps: "45 segundos", tip: "Relaxa a musculatura pélvica." },
+                            { id: "f_c3", name: "Elevação de Panturrilha", mode: "Apoio na Parede", series: 3, reps: "15", tip: "Reduz inchaços nas pernas." }
+                        ]
+                    }
+                }
+            }
+        };
 
+        window.currentProfile = 'rafael';
+        window.currentWorkoutDay = 'A';
+
+        // EXPOSITORES GLOBAIS DE NAVEGAÇÃO E REGRAS
+        window.switchTab = function(tabId) {
+            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.classList.remove('border-red-500', 'text-red-500', 'border-pink-500', 'text-pink-500');
+                btn.classList.add('border-transparent', 'text-slate-400');
+            });
+
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) {
+                activeNav.classList.remove('border-transparent', 'text-slate-400');
+                const colorClass = window.currentProfile === 'rafael' ? 'border-red-500 text-red-500' : 'border-pink-500 text-pink-500';
+                activeNav.className = `nav-tab py-3 px-4 border-b-2 ${colorClass} whitespace-nowrap flex items-center gap-2`;
+            }
+
+            if (tabId === 'workouts') {
+                renderWorkoutDaySelector();
+                loadWorkoutDay(window.currentWorkoutDay);
+            }
+        };
+
+        window.switchProfile = function(profile) {
+            window.currentProfile = profile;
+            const p = profilesData[profile];
+
+            document.getElementById('profile-badge').textContent = p.badge;
+            document.getElementById('profile-badge').className = `text-xs font-semibold px-2 py-0.5 rounded ${p.badgeClass}`;
+
+            document.getElementById('btn-profile-rafael').className = profile === 'rafael' ? "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-red-600 text-white shadow" : "px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white";
+            document.getElementById('btn-profile-flaviane').className = profile === 'flaviane' ? "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-pink-600 text-white shadow" : "px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white";
+
+            document.getElementById('hero-tag').textContent = p.heroTag;
+            document.getElementById('hero-quote').textContent = p.heroQuote;
+            document.getElementById('hero-sub').textContent = p.heroSub;
+
+            window.currentWorkoutDay = p.days[0];
+            renderHabits();
+            syncRealtime(profile);
+            renderWorkoutDaySelector();
+            loadWorkoutDay(window.currentWorkoutDay);
+        };
+
+        function renderHabits() {
+            const container = document.getElementById('habits-container');
+            const habits = profilesData[window.currentProfile].habits;
+
+            container.innerHTML = habits.map(h => `
+                <label class="flex items-center justify-between p-3.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-800 rounded-xl cursor-pointer transition">
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" id="${window.currentProfile}_${h.id}" onchange="toggleHabit('${window.currentProfile}_${h.id}')" class="w-5 h-5 accent-red-500 rounded cursor-pointer">
+                        <div>
+                            <span class="font-semibold text-sm text-slate-200">${h.label}</span>
+                            <p class="text-xs text-slate-400">${h.sub}</p>
+                        </div>
+                    </div>
+                </label>
+            `).join('');
+        }
+
+        window.toggleHabit = function(key) {
+            const el = document.getElementById(key);
+            if(el) localStorage.setItem(key, el.checked ? 'true' : 'false');
+        };
+
+        function renderWorkoutDaySelector() {
+            const container = document.getElementById('workout-day-selector');
+            const days = profilesData[window.currentProfile].days;
+
+            container.innerHTML = days.map(d => `
+                <button onclick="loadWorkoutDay('${d}')" id="btn-day-${d}" class="workout-day-btn px-4 py-2.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white font-bold transition whitespace-nowrap">
+                    Treino ${d}
+                </button>
+            `).join('');
+        }
+
+        window.loadWorkoutDay = function(day) {
+            window.currentWorkoutDay = day;
+            const p = profilesData[window.currentProfile];
+            const data = p.workouts[day];
+
+            document.querySelectorAll('.workout-day-btn').forEach(btn => {
+                btn.classList.remove('bg-red-600', 'bg-pink-600', 'text-white');
+                btn.classList.add('bg-slate-800', 'text-slate-400');
+            });
+
+            const activeBtn = document.getElementById(`btn-day-${day}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-slate-800', 'text-slate-400');
+                activeBtn.classList.add(window.currentProfile === 'rafael' ? 'bg-red-600' : 'bg-pink-600', 'text-white');
+            }
+
+            const container = document.getElementById('workout-content');
+            const accentText = window.currentProfile === 'rafael' ? 'text-red-400' : 'text-pink-400';
+
+            let html = `
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-6">
+                <div>
+                    <h2 class="text-xl font-black text-white mb-1">${data.title}</h2>
+                    <p class="text-xs text-slate-400">Anote os pesos utilizados para garantir a progressão de carga.</p>
+                </div>
+
+                <div class="bg-slate-800/80 p-4 sm:p-5 rounded-xl border border-slate-700">
+                    <h3 class="text-base font-bold ${accentText} flex items-center gap-2 mb-1">
+                        🚴 Sessão de Spinning Rmira (14kg) - ${data.bike.duration}
+                    </h3>
+                    <p class="text-sm font-semibold text-slate-200">${data.bike.type}</p>
+                    <p class="text-xs text-slate-300 mt-1">${data.bike.desc}</p>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Exercícios do Dia</h3>
+            `;
+
+            data.exercises.forEach(ex => {
+                const savedWeight = localStorage.getItem(`${window.currentProfile}_weight_${ex.id}`) || '';
+
+                html += `
+                <div class="bg-slate-800/60 hover:bg-slate-800 border border-slate-700/70 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition">
+                    <div class="space-y-1">
+                        <span class="font-bold text-base text-white">${ex.name}</span>
+                        <p class="text-xs ${accentText} font-medium">${ex.mode}</p>
+                        <p class="text-xs text-slate-400">${ex.tip}</p>
+                    </div>
+
+                    <div class="flex items-center gap-3 bg-slate-900/80 p-2 rounded-lg border border-slate-700/60 self-start sm:self-center">
+                        <div class="text-center px-2">
+                            <span class="text-[10px] text-slate-400 uppercase block font-semibold">Séries</span>
+                            <span class="text-sm font-bold text-slate-200">${ex.series}</span>
+                        </div>
+                        <div class="text-center border-x border-slate-700 px-3">
+                            <span class="text-[10px] text-slate-400 uppercase block font-semibold">Reps</span>
+                            <span class="text-sm font-bold text-slate-200">${ex.reps}</span>
+                        </div>
+                        <div class="text-center px-2">
+                            <span class="text-[10px] text-slate-400 uppercase block font-semibold">Carga (kg)</span>
+                            <input type="number" step="0.5" id="weight_${ex.id}" value="${savedWeight}" oninput="saveExerciseWeight('${ex.id}', this.value)" placeholder="0" class="w-16 text-center bg-slate-800 border border-slate-600 rounded text-white text-sm py-0.5 focus:outline-none focus:border-red-500">
+                        </div>
+                    </div>
+                </div>
+                `;
+            });
+
+            html += `
+                </div>
+                <button onclick="alert('Treino concluído!')" class="w-full py-3 bg-gradient-to-r from-red-600 to-orange-500 text-white font-bold text-sm rounded-xl">
+                    ✓ Concluir Treino de Hoje
+                </button>
+            </div>
+            `;
+
+            container.innerHTML = html;
+        };
+
+        window.saveExerciseWeight = function(id, val) {
+            localStorage.setItem(`${window.currentProfile}_weight_${id}`, val);
+        };
+
+        // FIREBASE SYNC REALTIME
         function syncRealtime(profile) {
             onSnapshot(doc(db, "users", profile), (docSnap) => {
                 if (docSnap.exists()) {
@@ -236,17 +511,64 @@
             `).join('');
         }
 
-        window.switchProfile = function(profile) {
-            window.currentProfile = profile;
-            syncRealtime(profile);
+        // CRONÔMETROS GLOBAIS DE DESCANSO E HIIT
+        let restTimerInterval = null;
+        window.startRestTimer = function(seconds) {
+            clearInterval(restTimerInterval);
+            let left = seconds;
+            updateRestDisplay(left);
+            restTimerInterval = setInterval(() => {
+                left--;
+                updateRestDisplay(left);
+                if (left <= 0) clearInterval(restTimerInterval);
+            }, 1000);
         };
 
-        window.switchTab = function(tabId) {
-            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+        function updateRestDisplay(sec) {
+            const m = String(Math.floor(sec / 60)).padStart(2, '0');
+            const s = String(sec % 60).padStart(2, '0');
+            document.getElementById('global-rest-display').textContent = `${m}:${s}`;
+        }
+
+        let hiitTimerInterval = null;
+        let hiitRunning = false;
+        let hiitPhase = "TIRO";
+        let hiitTime = 30;
+
+        window.toggleHIITTimer = function() {
+            const btn = document.getElementById('hiit-toggle-btn');
+            if (hiitRunning) {
+                clearInterval(hiitTimerInterval);
+                hiitRunning = false;
+                btn.textContent = "Start";
+            } else {
+                hiitRunning = true;
+                btn.textContent = "Pausa";
+                hiitTimerInterval = setInterval(() => {
+                    hiitTime--;
+                    if (hiitTime < 0) {
+                        hiitPhase = (hiitPhase === "TIRO") ? "DESCANSO" : "TIRO";
+                        hiitTime = 30;
+                    }
+                    document.getElementById('hiit-display').textContent = `00:${String(hiitTime).padStart(2, '0')}`;
+                }, 1000);
+            }
         };
 
+        window.resetHIITTimer = function() {
+            clearInterval(hiitTimerInterval);
+            hiitRunning = false;
+            hiitPhase = "TIRO";
+            hiitTime = 30;
+            document.getElementById('hiit-toggle-btn').textContent = "Start";
+            document.getElementById('hiit-display').textContent = "00:30";
+        };
+
+        // INICIALIZAÇÃO
+        renderHabits();
         syncRealtime('rafael');
+        renderWorkoutDaySelector();
+        loadWorkoutDay('A');
     </script>
 </body>
 </html>

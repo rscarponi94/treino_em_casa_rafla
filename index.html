@@ -325,6 +325,15 @@
         let selectedWorkoutDayForRegistration = null;
         let activeSnapshotUnsubscribe = null;
 
+        // FUNÇÃO DE LEITURA DIRETA DO BOTÃO ATIVO NA TELA (RAFAEL OU FLAVIANE)
+        window.getActiveProfileKey = function() {
+            const btnRafael = document.getElementById('btn-profile-rafael');
+            if (btnRafael && btnRafael.classList.contains('bg-red-600')) {
+                return 'rafael';
+            }
+            return 'flaviane';
+        };
+
         const profilesData = {
             rafael: {
                 name: "Rafael", badge: "RAFAEL", badgeClass: "bg-red-500/10 text-red-400 border-red-500/20", waterGoal: 3500,
@@ -439,7 +448,6 @@
             }
         };
 
-        window.currentProfile = 'rafael';
         window.currentWorkoutDay = 'A';
 
         window.switchTab = function(tabId) {
@@ -451,10 +459,11 @@
                 btn.classList.add('border-transparent', 'text-slate-400');
             });
 
+            const activeProfile = window.getActiveProfileKey();
             const activeNav = document.getElementById(`nav-${tabId}`);
             if (activeNav) {
                 activeNav.classList.remove('border-transparent', 'text-slate-400');
-                const colorClass = window.currentProfile === 'rafael' ? 'border-red-500 text-red-500' : 'border-pink-500 text-pink-500';
+                const colorClass = activeProfile === 'rafael' ? 'border-red-500 text-red-500' : 'border-pink-500 text-pink-500';
                 activeNav.className = `nav-tab py-3 px-4 border-b-2 ${colorClass} whitespace-nowrap flex items-center gap-2`;
             }
 
@@ -465,7 +474,6 @@
         };
 
         window.switchProfile = function(profile) {
-            window.currentProfile = profile;
             const p = profilesData[profile];
 
             document.getElementById('profile-badge').textContent = p.badge;
@@ -487,13 +495,14 @@
         };
 
         function renderHabits() {
+            const activeProfile = window.getActiveProfileKey();
             const container = document.getElementById('habits-container');
-            const habits = profilesData[window.currentProfile].habits;
+            const habits = profilesData[activeProfile].habits;
 
             container.innerHTML = habits.map(h => `
                 <label class="flex items-center justify-between p-3.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-800 rounded-xl cursor-pointer transition">
                     <div class="flex items-center gap-3">
-                        <input type="checkbox" id="${window.currentProfile}_${h.id}" onchange="toggleHabit('${window.currentProfile}_${h.id}', this.checked)" class="w-5 h-5 accent-red-500 rounded cursor-pointer">
+                        <input type="checkbox" id="${activeProfile}_${h.id}" onchange="toggleHabit('${activeProfile}_${h.id}', this.checked)" class="w-5 h-5 accent-red-500 rounded cursor-pointer">
                         <div>
                             <span class="font-semibold text-sm text-slate-200">${h.label}</span>
                             <p class="text-xs text-slate-400">${h.sub}</p>
@@ -502,11 +511,11 @@
                 </label>
             `).join('');
 
-            getDoc(doc(db, "users", window.currentProfile)).then(docSnap => {
+            getDoc(doc(db, "users", activeProfile)).then(docSnap => {
                 if (docSnap.exists() && docSnap.data().habitsState) {
                     const saved = docSnap.data().habitsState;
                     habits.forEach(h => {
-                        const el = document.getElementById(`${window.currentProfile}_${h.id}`);
+                        const el = document.getElementById(`${activeProfile}_${h.id}`);
                         if (el && saved[h.id] !== undefined) el.checked = saved[h.id];
                     });
                 }
@@ -514,8 +523,9 @@
         }
 
         window.toggleHabit = async function(key, isChecked) {
+            const activeProfile = window.getActiveProfileKey();
             const habitId = key.split('_').slice(1).join('_');
-            const docRef = doc(db, "users", window.currentProfile);
+            const docRef = doc(db, "users", activeProfile);
             const docSnap = await getDoc(docRef);
             let habitsState = (docSnap.exists() && docSnap.data().habitsState) ? docSnap.data().habitsState : {};
             
@@ -525,8 +535,9 @@
         };
 
         function renderWorkoutDaySelector() {
+            const activeProfile = window.getActiveProfileKey();
             const container = document.getElementById('workout-day-selector');
-            const days = profilesData[window.currentProfile].days;
+            const days = profilesData[activeProfile].days;
 
             container.innerHTML = days.map(d => `
                 <button onclick="loadWorkoutDay('${d}')" id="btn-day-${d}" class="workout-day-btn px-4 py-2.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white font-bold transition whitespace-nowrap">
@@ -536,8 +547,9 @@
         }
 
         window.loadWorkoutDay = function(day) {
+            const activeProfile = window.getActiveProfileKey();
             window.currentWorkoutDay = day;
-            const p = profilesData[window.currentProfile];
+            const p = profilesData[activeProfile];
             const data = p.workouts[day];
 
             document.querySelectorAll('.workout-day-btn').forEach(btn => {
@@ -548,11 +560,11 @@
             const activeBtn = document.getElementById(`btn-day-${day}`);
             if (activeBtn) {
                 activeBtn.classList.remove('bg-slate-800', 'text-slate-400');
-                activeBtn.classList.add(window.currentProfile === 'rafael' ? 'bg-red-600' : 'bg-pink-600', 'text-white');
+                activeBtn.classList.add(activeProfile === 'rafael' ? 'bg-red-600' : 'bg-pink-600', 'text-white');
             }
 
             const container = document.getElementById('workout-content');
-            const accentText = window.currentProfile === 'rafael' ? 'text-red-400' : 'text-pink-400';
+            const accentText = activeProfile === 'rafael' ? 'text-red-400' : 'text-pink-400';
 
             let html = `
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-6">
@@ -574,8 +586,8 @@
             `;
 
             data.exercises.forEach(ex => {
-                const savedWeight = localStorage.getItem(`${window.currentProfile}_weight_${ex.id}`) || '';
-                const savedChecked = localStorage.getItem(`${window.currentProfile}_check_${ex.id}`) === 'true' ? 'checked' : '';
+                const savedWeight = localStorage.getItem(`${activeProfile}_weight_${ex.id}`) || '';
+                const savedChecked = localStorage.getItem(`${activeProfile}_check_${ex.id}`) === 'true' ? 'checked' : '';
 
                 html += `
                 <div class="bg-slate-800/60 hover:bg-slate-800 border border-slate-700/70 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition">
@@ -618,14 +630,15 @@
         };
 
         window.toggleExerciseCheck = function(id, isChecked) {
-            localStorage.setItem(`${window.currentProfile}_check_${id}`, isChecked ? 'true' : 'false');
+            const activeProfile = window.getActiveProfileKey();
+            localStorage.setItem(`${activeProfile}_check_${id}`, isChecked ? 'true' : 'false');
         };
 
         window.saveExerciseWeight = function(id, val) {
-            localStorage.setItem(`${window.currentProfile}_weight_${id}`, val);
+            const activeProfile = window.getActiveProfileKey();
+            localStorage.setItem(`${activeProfile}_weight_${id}`, val);
         };
 
-        // ABRE O POP-UP DE CONFIRMAÇÃO
         window.openWorkoutModal = function(day) {
             selectedWorkoutDayForRegistration = day;
             document.getElementById('modal-workout-title').textContent = `Concluir Treino ${day}`;
@@ -640,8 +653,9 @@
             document.getElementById('confirm-workout-modal').classList.add('hidden');
         };
 
-        // SUBMETE E SALVA O TREINO (INDIVIDUAL POR PERFIL)
+        // SUBMETE E SALVA O TREINO NO DOCUMENTO ESPECÍFICO DO BOTÃO ATIVO
         window.submitWorkoutRegistration = async function() {
+            const activeProfile = window.getActiveProfileKey();
             const passwordInput = document.getElementById('modal-password-input').value.trim();
             if(!passwordInput) {
                 alert("Por favor, digite a senha!");
@@ -655,7 +669,7 @@
             const dateStr = now.toLocaleDateString('pt-BR');
             const dateTimeStr = now.toLocaleString('pt-BR');
             
-            const docRef = doc(db, "users", window.currentProfile);
+            const docRef = doc(db, "users", activeProfile);
             const docSnap = await getDoc(docRef);
             
             let data = docSnap.exists() ? docSnap.data() : {};
@@ -669,7 +683,7 @@
             activityLogs.unshift({
                 timestamp: dateTimeStr,
                 type: '🏋️ Treino Concluído',
-                details: `Treino ${day} de ${profilesData[window.currentProfile].name}`
+                details: `Treino ${day} de ${profilesData[activeProfile].name}`
             });
 
             try {
@@ -681,21 +695,22 @@
                 }, { merge: true });
 
                 closeWorkoutModal();
-                alert(`🔥 Treino ${day} de ${profilesData[window.currentProfile].name} gravado com sucesso!`);
+                alert(`🔥 Treino ${day} de ${profilesData[activeProfile].name} registrado com sucesso no Firebase!`);
             } catch (error) {
                 console.error("Erro ao salvar:", error);
                 alert("Senha incorreta ou bloqueio de permissão do Firebase.");
             }
         };
 
-        // REGISTRAR CHECK-IN DE PILATES
+        // REGISTRAR PILATES NO PERFIL ATIVO
         window.registerPilatesCheckin = async function() {
+            const activeProfile = window.getActiveProfileKey();
             const pass = localStorage.getItem('app_secret_key') || 'Rafla1706';
             const now = new Date();
             const dateStr = now.toLocaleDateString('pt-BR');
             const dateTimeStr = now.toLocaleString('pt-BR');
 
-            const docRef = doc(db, "users", window.currentProfile);
+            const docRef = doc(db, "users", activeProfile);
             const docSnap = await getDoc(docRef);
 
             let data = docSnap.exists() ? docSnap.data() : {};
@@ -709,7 +724,7 @@
             activityLogs.unshift({
                 timestamp: dateTimeStr,
                 type: '🧘 Pilates Presencial',
-                details: `Sessão de Pilates de ${profilesData[window.currentProfile].name}`
+                details: `Sessão de Pilates de ${profilesData[activeProfile].name}`
             });
 
             try {
@@ -720,7 +735,7 @@
                     activityLogs: activityLogs
                 }, { merge: true });
 
-                alert(`🧘 Pilates de hoje (${dateStr}) registrado com sucesso para ${profilesData[window.currentProfile].name}!`);
+                alert(`🧘 Pilates de hoje (${dateStr}) registrado com sucesso para ${profilesData[activeProfile].name}!`);
             } catch (error) {
                 console.error("Erro ao salvar Pilates:", error);
                 alert("Erro ao gravar no Firebase.");
@@ -730,8 +745,9 @@
         window.deleteCheckin = async function(dateToDelete) {
             if(!confirm(`Deseja remover o check-in do dia ${dateToDelete}?`)) return;
 
+            const activeProfile = window.getActiveProfileKey();
             const pass = localStorage.getItem('app_secret_key') || 'Rafla1706';
-            const docRef = doc(db, "users", window.currentProfile);
+            const docRef = doc(db, "users", activeProfile);
             const docSnap = await getDoc(docRef);
             if (!docSnap.exists()) return;
 
@@ -745,12 +761,12 @@
             }, { merge: true });
         };
 
-        // APAGAR REGISTRO INDIVIDUAL
         window.deleteSingleActivityLog = async function(indexToDelete) {
             if(!confirm("Deseja apagar este registro do histórico?")) return;
 
+            const activeProfile = window.getActiveProfileKey();
             const pass = localStorage.getItem('app_secret_key') || 'Rafla1706';
-            const docRef = doc(db, "users", window.currentProfile);
+            const docRef = doc(db, "users", activeProfile);
             const docSnap = await getDoc(docRef);
             if(!docSnap.exists()) return;
 
@@ -763,12 +779,12 @@
             }, { merge: true });
         };
 
-        // LIMPAR TODO O HISTÓRICO DE LOGS DO PERFIL ATUAL
         window.clearAllActivityLogs = async function() {
-            if(!confirm(`Tem certeza que deseja APAGAR TODO o histórico de registros de ${profilesData[window.currentProfile].name}?`)) return;
+            const activeProfile = window.getActiveProfileKey();
+            if(!confirm(`Tem certeza que deseja APAGAR TODO o histórico de registros de ${profilesData[activeProfile].name}?`)) return;
 
             const pass = localStorage.getItem('app_secret_key') || 'Rafla1706';
-            const docRef = doc(db, "users", window.currentProfile);
+            const docRef = doc(db, "users", activeProfile);
             
             await setDoc(docRef, {
                 accessKey: pass,
@@ -777,11 +793,12 @@
         };
 
         window.addWater = async function(amount) {
+            const activeProfile = window.getActiveProfileKey();
             const pass = localStorage.getItem('app_secret_key') || 'Rafla1706';
             const now = new Date();
             const dateTimeStr = now.toLocaleString('pt-BR');
 
-            const docRef = doc(db, "users", window.currentProfile);
+            const docRef = doc(db, "users", activeProfile);
             const docSnap = await getDoc(docRef);
             
             let data = docSnap.exists() ? docSnap.data() : {};
@@ -804,12 +821,12 @@
 
         window.resetWater = async function() {
             if(!confirm("Tem certeza que deseja zerar o consumo de água de hoje?")) return;
+            const activeProfile = window.getActiveProfileKey();
             const pass = localStorage.getItem('app_secret_key') || 'Rafla1706';
-            const docRef = doc(db, "users", window.currentProfile);
+            const docRef = doc(db, "users", activeProfile);
             await setDoc(docRef, { accessKey: pass, water: 0 }, { merge: true });
         };
 
-        // ESCUTA REALTIME TOTALMENTE SEPARADA POR PERFIL ('rafael' OU 'flaviane')
         function syncRealtime(profile) {
             if (activeSnapshotUnsubscribe) {
                 activeSnapshotUnsubscribe();
@@ -933,12 +950,13 @@
         }
 
         window.saveEvolutionEntry = async function() {
+            const activeProfile = window.getActiveProfileKey();
             const pass = localStorage.getItem('app_secret_key') || 'Rafla1706';
             const w = parseFloat(document.getElementById('evo-input-weight').value);
             const waist = document.getElementById('evo-input-waist').value;
             if (!w) return alert("Digite ao menos o peso!");
 
-            const docRef = doc(db, "users", window.currentProfile);
+            const docRef = doc(db, "users", activeProfile);
             const docSnap = await getDoc(docRef);
             let history = docSnap.exists() && docSnap.data().history ? docSnap.data().history : [];
 

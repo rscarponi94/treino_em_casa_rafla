@@ -64,7 +64,6 @@
                         <button id="btn-profile-rafael" onclick="switchProfile('rafael')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-red-600 text-white shadow">👨 Rafael</button>
                         <button id="btn-profile-flaviane" onclick="switchProfile('flaviane')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white">🤰 Flaviane</button>
                     </div>
-                    <!-- Botão para Sair e pedir a senha de novo -->
                     <button onclick="localStorage.removeItem('app_secret_key'); location.reload();" title="Sair / Bloquear" class="p-2 bg-slate-800 hover:bg-red-950/50 border border-slate-700 hover:border-red-500/50 text-slate-400 hover:text-red-400 rounded-xl transition">
                         🔒
                     </button>
@@ -253,7 +252,7 @@
             </div>
         </section>
 
-        <!-- 5. HISTÓRICO DE REGISTROS (NOVA ABA) -->
+        <!-- 5. HISTÓRICO DE REGISTROS -->
         <section id="tab-logs" class="space-y-6 hidden">
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4">
                 <h3 class="text-lg font-bold text-white flex items-center gap-2">
@@ -508,7 +507,7 @@
             const habitId = key.split('_').slice(1).join('_');
             const docRef = doc(db, "users", window.currentProfile);
             const docSnap = await getDoc(docRef);
-            let habitsState = docSnap.exists() && docSnap.data().habitsState ? docSnap.data().habitsState : {};
+            let habitsState = (docSnap.exists() && docSnap.data().habitsState) ? docSnap.data().habitsState : {};
             
             habitsState[habitId] = isChecked;
             await setDoc(docRef, { accessKey: getSecretKey(), habitsState: habitsState }, { merge: true });
@@ -615,8 +614,15 @@
             localStorage.setItem(`${window.currentProfile}_weight_${id}`, val);
         };
 
-        // CONCLUIR TREINO (GRAVA CHECK-IN E HISTÓRICO CRONOLÓGICO)
+        // CONCLUIR TREINO COM CHAVE DE ACESSO EXPLICITA
         window.finishWorkoutDay = async function(day) {
+            const key = getSecretKey();
+            if(!key) {
+                alert("Chave de acesso não encontrada. Por favor, digite a senha.");
+                document.getElementById('auth-modal').classList.remove('hidden');
+                return;
+            }
+
             const now = new Date();
             const dateStr = now.toLocaleDateString('pt-BR');
             const dateTimeStr = now.toLocaleString('pt-BR');
@@ -638,17 +644,21 @@
                 details: `Treino ${day} de ${profilesData[window.currentProfile].name}`
             });
 
-            await setDoc(docRef, {
-                accessKey: getSecretKey(),
-                checkins: checkins,
-                streak: checkins.length,
-                activityLogs: activityLogs
-            }, { merge: true });
+            try {
+                await setDoc(docRef, {
+                    accessKey: key,
+                    checkins: checkins,
+                    streak: checkins.length,
+                    activityLogs: activityLogs
+                }, { merge: true });
 
-            alert(`🔥 Treino ${day} concluído e salvo no banco!`);
+                alert(`🔥 Treino ${day} registrado com sucesso!`);
+            } catch (error) {
+                console.error("Erro ao salvar:", error);
+                alert("Erro ao gravar no Firebase. Verifique se a senha foi digitada corretamente.");
+            }
         };
 
-        // APAGAR CHECK-IN REALIZADO INCORRETAMENTE
         window.deleteCheckin = async function(dateToDelete) {
             if(!confirm(`Deseja remover o check-in do dia ${dateToDelete}?`)) return;
 
@@ -666,7 +676,6 @@
             }, { merge: true });
         };
 
-        // ADICIONAR ÁGUA (COM LOG CRONOLÓGICO)
         window.addWater = async function(amount) {
             const now = new Date();
             const dateTimeStr = now.toLocaleString('pt-BR');
@@ -698,7 +707,6 @@
             await setDoc(docRef, { accessKey: getSecretKey(), water: 0 }, { merge: true });
         };
 
-        // FIREBASE SYNC REALTIME
         function syncRealtime(profile) {
             if(!getSecretKey()) return;
 

@@ -129,6 +129,20 @@
                 </div>
             </div>
 
+            <!-- Módulo de Check-in de Pilates -->
+            <div class="bg-gradient-to-r from-indigo-950/60 via-slate-900 to-slate-900 border border-indigo-500/30 p-4 sm:p-5 rounded-2xl shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="bg-indigo-600/20 p-3 rounded-xl border border-indigo-500/30 text-2xl">🧘</div>
+                    <div>
+                        <h3 class="text-base font-extrabold text-white">Pilates Presencial (Segunda & Quinta)</h3>
+                        <p class="text-xs text-slate-400">Fortalecimento de core, postura e flexibilidade.</p>
+                    </div>
+                </div>
+                <button onclick="registerPilatesCheckin()" class="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg transition whitespace-nowrap">
+                    ✓ Registrar Pilates de Hoje
+                </button>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-6">
                     <div>
@@ -309,6 +323,7 @@
         const db = getFirestore(app);
 
         let selectedWorkoutDayForRegistration = null;
+        let activeSnapshotUnsubscribe = null;
 
         const profilesData = {
             rafael: {
@@ -625,7 +640,7 @@
             document.getElementById('confirm-workout-modal').classList.add('hidden');
         };
 
-        // SUBMETE E SALVA O TREINO
+        // SUBMETE E SALVA O TREINO (INDIVIDUAL POR PERFIL)
         window.submitWorkoutRegistration = async function() {
             const passwordInput = document.getElementById('modal-password-input').value.trim();
             if(!passwordInput) {
@@ -652,7 +667,6 @@
             }
 
             activityLogs.unshift({
-                id: Date.now(),
                 timestamp: dateTimeStr,
                 type: '🏋️ Treino Concluído',
                 details: `Treino ${day} de ${profilesData[window.currentProfile].name}`
@@ -667,10 +681,49 @@
                 }, { merge: true });
 
                 closeWorkoutModal();
-                alert(`🔥 Treino ${day} gravado com sucesso no Firebase!`);
+                alert(`🔥 Treino ${day} de ${profilesData[window.currentProfile].name} gravado com sucesso!`);
             } catch (error) {
                 console.error("Erro ao salvar:", error);
                 alert("Senha incorreta ou bloqueio de permissão do Firebase.");
+            }
+        };
+
+        // REGISTRAR CHECK-IN DE PILATES
+        window.registerPilatesCheckin = async function() {
+            const pass = localStorage.getItem('app_secret_key') || 'Rafla1706';
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('pt-BR');
+            const dateTimeStr = now.toLocaleString('pt-BR');
+
+            const docRef = doc(db, "users", window.currentProfile);
+            const docSnap = await getDoc(docRef);
+
+            let data = docSnap.exists() ? docSnap.data() : {};
+            let checkins = data.checkins || [];
+            let activityLogs = data.activityLogs || [];
+
+            if (!checkins.includes(dateStr)) {
+                checkins.unshift(dateStr);
+            }
+
+            activityLogs.unshift({
+                timestamp: dateTimeStr,
+                type: '🧘 Pilates Presencial',
+                details: `Sessão de Pilates de ${profilesData[window.currentProfile].name}`
+            });
+
+            try {
+                await setDoc(docRef, {
+                    accessKey: pass,
+                    checkins: checkins,
+                    streak: checkins.length,
+                    activityLogs: activityLogs
+                }, { merge: true });
+
+                alert(`🧘 Pilates de hoje (${dateStr}) registrado com sucesso para ${profilesData[window.currentProfile].name}!`);
+            } catch (error) {
+                console.error("Erro ao salvar Pilates:", error);
+                alert("Erro ao gravar no Firebase.");
             }
         };
 
@@ -692,7 +745,7 @@
             }, { merge: true });
         };
 
-        // APAGAR UM REGISTRO ESPECÍFICO DO HISTÓRICO DE LOGS
+        // APAGAR REGISTRO INDIVIDUAL
         window.deleteSingleActivityLog = async function(indexToDelete) {
             if(!confirm("Deseja apagar este registro do histórico?")) return;
 
@@ -710,9 +763,9 @@
             }, { merge: true });
         };
 
-        // LIMPAR TODO O HISTÓRICO DE LOGS
+        // LIMPAR TODO O HISTÓRICO DE LOGS DO PERFIL ATUAL
         window.clearAllActivityLogs = async function() {
-            if(!confirm("Tem certeza que deseja APAGAR TODO o histórico de registros?")) return;
+            if(!confirm(`Tem certeza que deseja APAGAR TODO o histórico de registros de ${profilesData[window.currentProfile].name}?`)) return;
 
             const pass = localStorage.getItem('app_secret_key') || 'Rafla1706';
             const docRef = doc(db, "users", window.currentProfile);
@@ -737,7 +790,6 @@
 
             currentWater += amount;
             activityLogs.unshift({
-                id: Date.now(),
                 timestamp: dateTimeStr,
                 type: '💧 Hidratação',
                 details: `+${amount}ml registrados (Total: ${currentWater}ml)`
@@ -757,11 +809,17 @@
             await setDoc(docRef, { accessKey: pass, water: 0 }, { merge: true });
         };
 
+        // ESCUTA REALTIME TOTALMENTE SEPARADA POR PERFIL ('rafael' OU 'flaviane')
         function syncRealtime(profile) {
-            onSnapshot(doc(db, "users", profile), (docSnap) => {
+            if (activeSnapshotUnsubscribe) {
+                activeSnapshotUnsubscribe();
+            }
+
+            activeSnapshotUnsubscribe = onSnapshot(doc(db, "users", profile), (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    if (data.weight) document.getElementById('dash-weight-display').textContent = `${data.weight} kg`;
+                    
+                    document.getElementById('dash-weight-display').textContent = data.weight ? `${data.weight} kg` : '-- kg';
                     
                     const waterVal = data.water !== undefined ? data.water : 0;
                     const goal = profilesData[profile].waterGoal;
@@ -790,13 +848,24 @@
                         dashStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-400";
                     }
 
-                    if (data.history) renderTableData(data.history);
+                    renderTableData(data.history || []);
                     
                     const checkins = data.checkins || [];
-                    document.getElementById('streak-counter').textContent = data.streak || checkins.length;
+                    document.getElementById('streak-counter').textContent = data.streak !== undefined ? data.streak : checkins.length;
                     renderCheckinsAndMetrics(checkins);
 
-                    if (data.activityLogs) renderActivityLogs(data.activityLogs);
+                    renderActivityLogs(data.activityLogs || []);
+                } else {
+                    document.getElementById('dash-weight-display').textContent = '-- kg';
+                    document.getElementById('water-current-amount').textContent = '0 ml';
+                    document.getElementById('dash-water-display').textContent = `0 / ${profilesData[profile].waterGoal} ml`;
+                    document.getElementById('water-percentage').textContent = '0%';
+                    document.getElementById('water-progress-bar').style.width = '0%';
+                    document.getElementById('dash-water-bar').style.width = '0%';
+                    document.getElementById('streak-counter').textContent = '0';
+                    renderCheckinsAndMetrics([]);
+                    renderActivityLogs([]);
+                    renderTableData([]);
                 }
             });
         }
@@ -845,7 +914,7 @@
         function renderActivityLogs(logs) {
             const tbody = document.getElementById('activity-log-body');
             if(!logs || logs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-slate-500 text-center">Nenhum registro ainda.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-slate-500 text-center">Nenhum registro ainda para este perfil.</td></tr>`;
                 return;
             }
 

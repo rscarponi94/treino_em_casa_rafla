@@ -259,10 +259,17 @@
         <!-- 5. HISTÓRICO DE REGISTROS -->
         <section id="tab-logs" class="space-y-6 hidden">
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4">
-                <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                    📜 Log Cronológico de Treinos & Água
-                </h3>
-                <p class="text-xs text-slate-400">Acompanhe todos os eventos gravados em tempo real no banco de dados.</p>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            📜 Log Cronológico de Treinos & Água
+                        </h3>
+                        <p class="text-xs text-slate-400">Acompanhe todos os eventos gravados em tempo real no banco de dados.</p>
+                    </div>
+                    <button onclick="clearAllActivityLogs()" class="py-2 px-4 bg-red-950/60 hover:bg-red-900/80 border border-red-800/80 text-red-300 font-bold text-xs rounded-xl transition self-start sm:self-auto">
+                        🗑️ Limpar Todo o Histórico
+                    </button>
+                </div>
                 
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs text-slate-300">
@@ -271,6 +278,7 @@
                                 <th class="p-3">Data/Hora</th>
                                 <th class="p-3">Tipo de Registro</th>
                                 <th class="p-3">Detalhes</th>
+                                <th class="p-3 text-center">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="activity-log-body" class="divide-y divide-slate-800">
@@ -607,7 +615,6 @@
             selectedWorkoutDayForRegistration = day;
             document.getElementById('modal-workout-title').textContent = `Concluir Treino ${day}`;
             
-            // Pré-preenche se já houver senha salva no navegador
             const savedKey = localStorage.getItem('app_secret_key') || 'Rafla1706';
             document.getElementById('modal-password-input').value = savedKey;
             
@@ -626,7 +633,6 @@
                 return;
             }
 
-            // Salva na memória local para facilidade
             localStorage.setItem('app_secret_key', passwordInput);
 
             const day = selectedWorkoutDayForRegistration;
@@ -646,6 +652,7 @@
             }
 
             activityLogs.unshift({
+                id: Date.now(),
                 timestamp: dateTimeStr,
                 type: '🏋️ Treino Concluído',
                 details: `Treino ${day} de ${profilesData[window.currentProfile].name}`
@@ -685,6 +692,37 @@
             }, { merge: true });
         };
 
+        // APAGAR UM REGISTRO ESPECÍFICO DO HISTÓRICO DE LOGS
+        window.deleteSingleActivityLog = async function(indexToDelete) {
+            if(!confirm("Deseja apagar este registro do histórico?")) return;
+
+            const pass = localStorage.getItem('app_secret_key') || 'Rafla1706';
+            const docRef = doc(db, "users", window.currentProfile);
+            const docSnap = await getDoc(docRef);
+            if(!docSnap.exists()) return;
+
+            let activityLogs = docSnap.data().activityLogs || [];
+            activityLogs.splice(indexToDelete, 1);
+
+            await setDoc(docRef, {
+                accessKey: pass,
+                activityLogs: activityLogs
+            }, { merge: true });
+        };
+
+        // LIMPAR TODO O HISTÓRICO DE LOGS
+        window.clearAllActivityLogs = async function() {
+            if(!confirm("Tem certeza que deseja APAGAR TODO o histórico de registros?")) return;
+
+            const pass = localStorage.getItem('app_secret_key') || 'Rafla1706';
+            const docRef = doc(db, "users", window.currentProfile);
+            
+            await setDoc(docRef, {
+                accessKey: pass,
+                activityLogs: []
+            }, { merge: true });
+        };
+
         window.addWater = async function(amount) {
             const pass = localStorage.getItem('app_secret_key') || 'Rafla1706';
             const now = new Date();
@@ -699,6 +737,7 @@
 
             currentWater += amount;
             activityLogs.unshift({
+                id: Date.now(),
                 timestamp: dateTimeStr,
                 type: '💧 Hidratação',
                 details: `+${amount}ml registrados (Total: ${currentWater}ml)`
@@ -806,15 +845,20 @@
         function renderActivityLogs(logs) {
             const tbody = document.getElementById('activity-log-body');
             if(!logs || logs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="p-3 text-slate-500 text-center">Nenhum registro ainda.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-slate-500 text-center">Nenhum registro ainda.</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = logs.map(item => `
+            tbody.innerHTML = logs.map((item, index) => `
                 <tr class="hover:bg-slate-800/40">
                     <td class="p-3 text-slate-400 font-mono">${item.timestamp}</td>
                     <td class="p-3 font-bold text-white">${item.type}</td>
                     <td class="p-3 text-slate-300">${item.details}</td>
+                    <td class="p-3 text-center">
+                        <button onclick="deleteSingleActivityLog(${index})" title="Apagar este registro" class="p-1 bg-red-950/50 hover:bg-red-900 border border-red-800/60 text-red-400 rounded-lg text-xs font-bold transition">
+                            ✖
+                        </button>
+                    </td>
                 </tr>
             `).join('');
         }

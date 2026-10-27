@@ -77,7 +77,7 @@
         </div>
 
         <nav class="flex overflow-x-auto border-t border-slate-800 max-w-7xl mx-auto px-4 text-xs font-semibold no-scrollbar">
-            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-tab py-3 px-4 border-b-2 border-red-500 text-red-500 whitespace-nowrap flex items-center gap-2">🔥 Dashboard & Mindset</button>
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-tab py-3 px-4 border-b-2 border-red-500 text-red-500 whitespace-nowrap flex items-center gap-2">🔥 Dashboard & Check-in</button>
             <button onclick="switchTab('workouts')" id="nav-workouts" class="nav-tab py-3 px-4 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-2">🏋️ Treinos & Spinning</button>
             <button onclick="switchTab('evolution')" id="nav-evolution" class="nav-tab py-3 px-4 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-2">📊 Evolução Corporal</button>
             <button onclick="switchTab('calculator')" id="nav-calculator" class="nav-tab py-3 px-4 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-2">🥑 Nutrição & Água</button>
@@ -85,7 +85,7 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
-        <!-- 1. DASHBOARD -->
+        <!-- 1. DASHBOARD & CHECK-IN -->
         <section id="tab-dashboard" class="space-y-6">
             <div id="hero-banner" class="bg-gradient-to-r from-red-950/60 via-slate-900 to-slate-900 border border-red-500/30 rounded-2xl p-6 relative overflow-hidden shadow-2xl">
                 <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
@@ -94,13 +94,36 @@
                         <h2 id="hero-quote" class="text-2xl sm:text-3xl font-extrabold text-white">"A disciplina compensa a falta de motivação."</h2>
                         <p id="hero-sub" class="text-sm text-slate-400 max-w-2xl">Seu objetivo é secar e preservar massa magra. Foco nas vitórias diárias.</p>
                     </div>
+
+                    <!-- Streak Display -->
+                    <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl text-center min-w-[160px] w-full md:w-auto shadow-inner">
+                        <span class="text-xs uppercase font-bold text-slate-400 block tracking-wider">Ofensiva Atual</span>
+                        <div class="flex items-center justify-center gap-1 my-1">
+                            <span id="streak-counter" class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-400">0</span>
+                            <span class="text-2xl">🔥</span>
+                        </div>
+                        <span class="text-[11px] text-slate-400">Treinos Concluídos</span>
+                    </div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
-                    <h3 class="text-lg font-bold text-white mb-4">📋 Compromissos Innegociáveis do Dia</h3>
-                    <div id="habits-container" class="space-y-3"></div>
+                <!-- Check-in Calendar & Habits -->
+                <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                            <span>📅</span> Calendário de Treinos & Check-in
+                        </h3>
+                        <p class="text-xs text-slate-400 mb-4">Dias com ícone verde indicam treinos concluídos e salvos na nuvem.</p>
+                        <div id="checkin-history-list" class="flex flex-wrap gap-2 pt-2">
+                            <!-- Gerado via JS com os check-ins do Firebase -->
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-800 pt-4">
+                        <h3 class="text-md font-bold text-white mb-3">📋 Hábitos Diários</h3>
+                        <div id="habits-container" class="space-y-3"></div>
+                    </div>
                 </div>
 
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg flex flex-col justify-between">
@@ -117,24 +140,27 @@
                             </div>
                         </div>
                     </div>
+                    <button onclick="switchTab('workouts')" class="mt-6 w-full py-3 bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-500 hover:to-orange-400 text-white font-bold text-sm rounded-xl shadow-lg transition">
+                        Ir para Treinos →
+                    </button>
                 </div>
             </div>
         </section>
 
-        <!-- 2. TREINOS -->
+        <!-- 2. TREINOS & SPINNING -->
         <section id="tab-workouts" class="space-y-6 hidden">
             <div id="workout-day-selector" class="flex overflow-x-auto space-x-2 border-b border-slate-800 pb-3 text-xs sm:text-sm no-scrollbar"></div>
             <div id="workout-content" class="space-y-6"></div>
         </section>
 
-        <!-- 3. EVOLUÇÃO -->
+        <!-- 3. EVOLUÇÃO CORPORAL -->
         <section id="tab-evolution" class="space-y-6 hidden">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4">
                     <h3 class="text-lg font-bold text-white">⚖️ Novo Registro de Medidas</h3>
                     <input type="number" step="0.1" id="evo-input-weight" placeholder="Peso (kg)" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm">
                     <input type="number" step="0.5" id="evo-input-waist" placeholder="Cintura (cm)" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm">
-                    <button onclick="saveEvolutionEntry()" id="btn-save-evo" class="w-full py-3 bg-red-600 text-white font-bold text-sm rounded-xl">Salvar Medidas</button>
+                    <button onclick="saveEvolutionEntry()" id="btn-save-evo" class="w-full py-3 bg-red-600 text-white font-bold text-sm rounded-xl font-bold">Salvar Medidas no Banco</button>
                 </div>
 
                 <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
@@ -149,7 +175,7 @@
             </div>
         </section>
 
-        <!-- 4. ÁGUA -->
+        <!-- 4. NUTRIÇÃO & ÁGUA -->
         <section id="tab-calculator" class="space-y-6 hidden">
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg text-center space-y-6">
                 <h3 class="text-lg font-bold text-white">💧 Controle de Hidratação Diária</h3>
@@ -163,7 +189,7 @@
         </section>
     </main>
 
-    <!-- FIREBASE & APP LOGIC (GLOBAL) -->
+    <!-- FIREBASE & APP LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -181,7 +207,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // MAPA DE DADOS COMPLETO DOS TREINOS
         const profilesData = {
             rafael: {
                 name: "Rafael", badge: "RAFAEL", badgeClass: "bg-red-500/10 text-red-400 border-red-500/20",
@@ -299,7 +324,6 @@
         window.currentProfile = 'rafael';
         window.currentWorkoutDay = 'A';
 
-        // EXPOSITORES GLOBAIS DE NAVEGAÇÃO E REGRAS
         window.switchTab = function(tabId) {
             document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
@@ -445,8 +469,8 @@
 
             html += `
                 </div>
-                <button onclick="alert('Treino concluído!')" class="w-full py-3 bg-gradient-to-r from-red-600 to-orange-500 text-white font-bold text-sm rounded-xl">
-                    ✓ Concluir Treino de Hoje
+                <button onclick="finishWorkoutDay('${day}')" class="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-extrabold text-base rounded-xl shadow-lg transition transform active:scale-95">
+                    ✓ Concluir Treino ${day} de Hoje (Salvar Check-in)
                 </button>
             </div>
             `;
@@ -458,6 +482,24 @@
             localStorage.setItem(`${window.currentProfile}_weight_${id}`, val);
         };
 
+        // SALVAR TREINO E REGISTRAR CHECK-IN NO FIREBASE
+        window.finishWorkoutDay = async function(day) {
+            const dateStr = new Date().toLocaleDateString('pt-BR');
+            const docRef = doc(db, "users", window.currentProfile);
+            const docSnap = await getDoc(docRef);
+            
+            let checkins = docSnap.exists() && docSnap.data().checkins ? docSnap.data().checkins : [];
+            
+            if (!checkins.includes(dateStr)) {
+                checkins.unshift(dateStr);
+            }
+
+            const streak = checkins.length;
+
+            await setDoc(docRef, { checkins: checkins, streak: streak }, { merge: true });
+            alert(`🔥 Treino ${day} concluído! Check-in registrado no banco para ${dateStr}. Siga firme!`);
+        };
+
         // FIREBASE SYNC REALTIME
         function syncRealtime(profile) {
             onSnapshot(doc(db, "users", profile), (docSnap) => {
@@ -467,14 +509,33 @@
                     if (data.water !== undefined) document.getElementById('water-current-amount').textContent = `${data.water} ml`;
                     if (data.water !== undefined) document.getElementById('dash-water-display').textContent = `${data.water} ml`;
                     if (data.history) renderTableData(data.history);
+                    
+                    // Renderiza o Calendário/Check-ins e Streak
+                    const checkins = data.checkins || [];
+                    document.getElementById('streak-counter').textContent = data.streak || checkins.length;
+                    renderCheckins(checkins);
                 }
             });
+        }
+
+        function renderCheckins(checkins) {
+            const container = document.getElementById('checkin-history-list');
+            if (checkins.length === 0) {
+                container.innerHTML = `<span class="text-xs text-slate-500">Nenhum check-in gravado ainda. Conclua um treino para registrar!</span>`;
+                return;
+            }
+
+            container.innerHTML = checkins.map(date => `
+                <span class="inline-flex items-center gap-1.5 bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 px-3 py-1.5 rounded-xl text-xs font-bold">
+                    ✅ ${date}
+                </span>
+            `).join('');
         }
 
         window.saveEvolutionEntry = async function() {
             const w = parseFloat(document.getElementById('evo-input-weight').value);
             const waist = document.getElementById('evo-input-waist').value;
-            if (!w) return alert("Digite o peso!");
+            if (!w) return alert("Digite ao menos o peso!");
 
             const docRef = doc(db, "users", window.currentProfile);
             const docSnap = await getDoc(docRef);
@@ -511,7 +572,7 @@
             `).join('');
         }
 
-        // CRONÔMETROS GLOBAIS DE DESCANSO E HIIT
+        // CRONÔMETROS GLOBAIS
         let restTimerInterval = null;
         window.startRestTimer = function(seconds) {
             clearInterval(restTimerInterval);

@@ -59,9 +59,15 @@
                     </div>
                 </div>
 
-                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
-                    <button id="btn-profile-rafael" onclick="switchProfile('rafael')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-red-600 text-white shadow">👨 Rafael</button>
-                    <button id="btn-profile-flaviane" onclick="switchProfile('flaviane')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white">🤰 Flaviane</button>
+                <div class="flex items-center gap-2">
+                    <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                        <button id="btn-profile-rafael" onclick="switchProfile('rafael')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-red-600 text-white shadow">👨 Rafael</button>
+                        <button id="btn-profile-flaviane" onclick="switchProfile('flaviane')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white">🤰 Flaviane</button>
+                    </div>
+                    <!-- Botão para Sair e pedir a senha de novo -->
+                    <button onclick="localStorage.removeItem('app_secret_key'); location.reload();" title="Sair / Bloquear" class="p-2 bg-slate-800 hover:bg-red-950/50 border border-slate-700 hover:border-red-500/50 text-slate-400 hover:text-red-400 rounded-xl transition">
+                        🔒
+                    </button>
                 </div>
             </div>
 
@@ -94,6 +100,7 @@
             <button onclick="switchTab('workouts')" id="nav-workouts" class="nav-tab py-3 px-4 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-2">🏋️ Treinos & Spinning</button>
             <button onclick="switchTab('evolution')" id="nav-evolution" class="nav-tab py-3 px-4 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-2">📊 Evolução Corporal</button>
             <button onclick="switchTab('calculator')" id="nav-calculator" class="nav-tab py-3 px-4 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-2">🥑 Nutrição & Água</button>
+            <button onclick="switchTab('logs')" id="nav-logs" class="nav-tab py-3 px-4 border-b-2 border-transparent text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-2">📜 Histórico de Registros</button>
         </nav>
     </header>
 
@@ -141,7 +148,7 @@
                             </div>
                         </div>
 
-                        <p class="text-xs text-slate-400 mb-2">Histórico de dias com check-in salvo na nuvem:</p>
+                        <p class="text-xs text-slate-400 mb-2">Histórico de check-ins salvos (Clique no ✖ para apagar se errou):</p>
                         <div id="checkin-history-list" class="flex flex-wrap gap-2 pt-1 max-h-40 overflow-y-auto"></div>
                     </div>
 
@@ -242,6 +249,31 @@
                     <button onclick="resetWater()" class="py-3 px-5 bg-red-950/40 border border-red-900/50 hover:bg-red-900/60 text-red-400 font-bold text-sm rounded-xl transition">
                         🗑️ Zerar
                     </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. HISTÓRICO DE REGISTROS (NOVA ABA) -->
+        <section id="tab-logs" class="space-y-6 hidden">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    📜 Log Cronológico de Treinos & Água
+                </h3>
+                <p class="text-xs text-slate-400">Acompanhe todos os eventos gravados em tempo real no banco de dados.</p>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-800/80 text-slate-400 uppercase font-semibold">
+                            <tr>
+                                <th class="p-3">Data/Hora</th>
+                                <th class="p-3">Tipo de Registro</th>
+                                <th class="p-3">Detalhes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activity-log-body" class="divide-y divide-slate-800">
+                            <!-- Preenchido via Javascript -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </section>
@@ -583,21 +615,87 @@
             localStorage.setItem(`${window.currentProfile}_weight_${id}`, val);
         };
 
+        // CONCLUIR TREINO (GRAVA CHECK-IN E HISTÓRICO CRONOLÓGICO)
         window.finishWorkoutDay = async function(day) {
-            const dateObj = new Date();
-            const dateStr = dateObj.toLocaleDateString('pt-BR');
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('pt-BR');
+            const dateTimeStr = now.toLocaleString('pt-BR');
+            
             const docRef = doc(db, "users", window.currentProfile);
             const docSnap = await getDoc(docRef);
             
-            let checkins = docSnap.exists() && docSnap.data().checkins ? docSnap.data().checkins : [];
-            
+            let data = docSnap.exists() ? docSnap.data() : {};
+            let checkins = data.checkins || [];
+            let activityLogs = data.activityLogs || [];
+
             if (!checkins.includes(dateStr)) {
                 checkins.unshift(dateStr);
             }
 
-            const streak = checkins.length;
-            await setDoc(docRef, { accessKey: getSecretKey(), checkins: checkins, streak: streak }, { merge: true });
-            alert(`🔥 Treino ${day} concluído! Check-in salvo no banco para ${dateStr}. Siga firme!`);
+            activityLogs.unshift({
+                timestamp: dateTimeStr,
+                type: '🏋️ Treino Concluído',
+                details: `Treino ${day} de ${profilesData[window.currentProfile].name}`
+            });
+
+            await setDoc(docRef, {
+                accessKey: getSecretKey(),
+                checkins: checkins,
+                streak: checkins.length,
+                activityLogs: activityLogs
+            }, { merge: true });
+
+            alert(`🔥 Treino ${day} concluído e salvo no banco!`);
+        };
+
+        // APAGAR CHECK-IN REALIZADO INCORRETAMENTE
+        window.deleteCheckin = async function(dateToDelete) {
+            if(!confirm(`Deseja remover o check-in do dia ${dateToDelete}?`)) return;
+
+            const docRef = doc(db, "users", window.currentProfile);
+            const docSnap = await getDoc(docRef);
+            if (!docSnap.exists()) return;
+
+            let checkins = docSnap.data().checkins || [];
+            checkins = checkins.filter(d => d !== dateToDelete);
+
+            await setDoc(docRef, {
+                accessKey: getSecretKey(),
+                checkins: checkins,
+                streak: checkins.length
+            }, { merge: true });
+        };
+
+        // ADICIONAR ÁGUA (COM LOG CRONOLÓGICO)
+        window.addWater = async function(amount) {
+            const now = new Date();
+            const dateTimeStr = now.toLocaleString('pt-BR');
+
+            const docRef = doc(db, "users", window.currentProfile);
+            const docSnap = await getDoc(docRef);
+            
+            let data = docSnap.exists() ? docSnap.data() : {};
+            let currentWater = data.water || 0;
+            let activityLogs = data.activityLogs || [];
+
+            currentWater += amount;
+            activityLogs.unshift({
+                timestamp: dateTimeStr,
+                type: '💧 Hidratação',
+                details: `+${amount}ml registrados (Total: ${currentWater}ml)`
+            });
+
+            await setDoc(docRef, {
+                accessKey: getSecretKey(),
+                water: currentWater,
+                activityLogs: activityLogs
+            }, { merge: true });
+        };
+
+        window.resetWater = async function() {
+            if(!confirm("Tem certeza que deseja zerar o consumo de água de hoje?")) return;
+            const docRef = doc(db, "users", window.currentProfile);
+            await setDoc(docRef, { accessKey: getSecretKey(), water: 0 }, { merge: true });
         };
 
         // FIREBASE SYNC REALTIME
@@ -641,6 +739,8 @@
                     const checkins = data.checkins || [];
                     document.getElementById('streak-counter').textContent = data.streak || checkins.length;
                     renderCheckinsAndMetrics(checkins);
+
+                    if (data.activityLogs) renderActivityLogs(data.activityLogs);
                 }
             });
         }
@@ -679,9 +779,26 @@
             }
 
             container.innerHTML = checkins.map(date => `
-                <span class="inline-flex items-center gap-1.5 bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 px-3 py-1.5 rounded-xl text-xs font-bold">
+                <span class="inline-flex items-center gap-1.5 bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 px-2.5 py-1 rounded-xl text-xs font-bold">
                     ✅ ${date}
+                    <button onclick="deleteCheckin('${date}')" title="Apagar Check-in" class="text-slate-400 hover:text-red-400 ml-1 font-extrabold text-xs">✖</button>
                 </span>
+            `).join('');
+        }
+
+        function renderActivityLogs(logs) {
+            const tbody = document.getElementById('activity-log-body');
+            if(!logs || logs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="p-3 text-slate-500 text-center">Nenhum registro ainda.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = logs.map(item => `
+                <tr class="hover:bg-slate-800/40">
+                    <td class="p-3 text-slate-400 font-mono">${item.timestamp}</td>
+                    <td class="p-3 font-bold text-white">${item.type}</td>
+                    <td class="p-3 text-slate-300">${item.details}</td>
+                </tr>
             `).join('');
         }
 
@@ -699,19 +816,6 @@
             await setDoc(docRef, { accessKey: getSecretKey(), weight: w, waist: waist, history: history }, { merge: true });
             document.getElementById('evo-input-weight').value = '';
             document.getElementById('evo-input-waist').value = '';
-        };
-
-        window.addWater = async function(amount) {
-            const docRef = doc(db, "users", window.currentProfile);
-            const docSnap = await getDoc(docRef);
-            let current = docSnap.exists() && docSnap.data().water ? docSnap.data().water : 0;
-            current += amount;
-            await setDoc(docRef, { accessKey: getSecretKey(), water: current }, { merge: true });
-        };
-
-        window.resetWater = async function() {
-            const docRef = doc(db, "users", window.currentProfile);
-            await setDoc(docRef, { accessKey: getSecretKey(), water: 0 }, { merge: true });
         };
 
         function renderTableData(history) {

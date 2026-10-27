@@ -95,7 +95,6 @@
                         <p id="hero-sub" class="text-sm text-slate-400 max-w-2xl">Seu objetivo é secar e preservar massa magra. Foco nas vitórias diárias.</p>
                     </div>
 
-                    <!-- Streak Display -->
                     <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl text-center min-w-[160px] w-full md:w-auto shadow-inner">
                         <span class="text-xs uppercase font-bold text-slate-400 block tracking-wider">Ofensiva Atual</span>
                         <div class="flex items-center justify-center gap-1 my-1">
@@ -108,16 +107,29 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Check-in Calendar & Habits -->
                 <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-6">
                     <div>
                         <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                            <span>📅</span> Calendário de Treinos & Check-in
+                            <span>📅</span> Métricas & Calendário de Check-in
                         </h3>
-                        <p class="text-xs text-slate-400 mb-4">Dias com ícone verde indicam treinos concluídos e salvos na nuvem.</p>
-                        <div id="checkin-history-list" class="flex flex-wrap gap-2 pt-2">
-                            <!-- Gerado via JS com os check-ins do Firebase -->
+                        
+                        <div class="grid grid-cols-3 gap-3 my-4">
+                            <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/80 text-center">
+                                <span class="text-[10px] text-slate-400 font-bold block uppercase">Esta Semana</span>
+                                <span id="metric-week" class="text-xl font-black text-emerald-400">0</span>
+                            </div>
+                            <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/80 text-center">
+                                <span class="text-[10px] text-slate-400 font-bold block uppercase">Este Mês</span>
+                                <span id="metric-month" class="text-xl font-black text-emerald-400">0</span>
+                            </div>
+                            <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/80 text-center">
+                                <span class="text-[10px] text-slate-400 font-bold block uppercase">Este Ano</span>
+                                <span id="metric-year" class="text-xl font-black text-emerald-400">0</span>
+                            </div>
                         </div>
+
+                        <p class="text-xs text-slate-400 mb-2">Histórico de dias com check-in salvo na nuvem:</p>
+                        <div id="checkin-history-list" class="flex flex-wrap gap-2 pt-1 max-h-40 overflow-y-auto"></div>
                     </div>
 
                     <div class="border-t border-slate-800 pt-4">
@@ -160,7 +172,7 @@
                     <h3 class="text-lg font-bold text-white">⚖️ Novo Registro de Medidas</h3>
                     <input type="number" step="0.1" id="evo-input-weight" placeholder="Peso (kg)" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm">
                     <input type="number" step="0.5" id="evo-input-waist" placeholder="Cintura (cm)" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-sm">
-                    <button onclick="saveEvolutionEntry()" id="btn-save-evo" class="w-full py-3 bg-red-600 text-white font-bold text-sm rounded-xl font-bold">Salvar Medidas no Banco</button>
+                    <button onclick="saveEvolutionEntry()" id="btn-save-evo" class="w-full py-3 bg-red-600 text-white font-bold text-sm rounded-xl">Salvar Medidas no Banco</button>
                 </div>
 
                 <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg">
@@ -181,9 +193,9 @@
                 <h3 class="text-lg font-bold text-white">💧 Controle de Hidratação Diária</h3>
                 <div class="text-5xl font-black text-blue-400" id="water-current-amount">0 ml</div>
                 <div class="flex justify-center gap-3">
-                    <button onclick="addWater(250)" class="py-3 px-6 bg-slate-800 border border-slate-700 text-blue-400 font-bold text-sm rounded-xl">+250ml Copo</button>
-                    <button onclick="addWater(500)" class="py-3 px-6 bg-slate-800 border border-slate-700 text-blue-400 font-bold text-sm rounded-xl">+500ml Squeeze</button>
-                    <button onclick="resetWater()" class="py-3 px-6 bg-red-900/40 text-red-400 font-bold text-sm rounded-xl">Zerar</button>
+                    <button onclick="addWater(250)" class="py-3 px-6 bg-slate-800 border border-slate-700 text-blue-400 font-bold text-sm rounded-xl hover:bg-slate-700 transition">+250ml Copo</button>
+                    <button onclick="addWater(500)" class="py-3 px-6 bg-slate-800 border border-slate-700 text-blue-400 font-bold text-sm rounded-xl hover:bg-slate-700 transition">+500ml Squeeze</button>
+                    <button onclick="resetWater()" class="py-3 px-6 bg-red-900/40 text-red-400 font-bold text-sm rounded-xl hover:bg-red-900/60 transition">Zerar</button>
                 </div>
             </div>
         </section>
@@ -374,7 +386,7 @@
             container.innerHTML = habits.map(h => `
                 <label class="flex items-center justify-between p-3.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-800 rounded-xl cursor-pointer transition">
                     <div class="flex items-center gap-3">
-                        <input type="checkbox" id="${window.currentProfile}_${h.id}" onchange="toggleHabit('${window.currentProfile}_${h.id}')" class="w-5 h-5 accent-red-500 rounded cursor-pointer">
+                        <input type="checkbox" id="${window.currentProfile}_${h.id}" onchange="toggleHabit('${window.currentProfile}_${h.id}', this.checked)" class="w-5 h-5 accent-red-500 rounded cursor-pointer">
                         <div>
                             <span class="font-semibold text-sm text-slate-200">${h.label}</span>
                             <p class="text-xs text-slate-400">${h.sub}</p>
@@ -382,11 +394,26 @@
                     </div>
                 </label>
             `).join('');
+
+            getDoc(doc(db, "users", window.currentProfile)).then(docSnap => {
+                if (docSnap.exists() && docSnap.data().habitsState) {
+                    const saved = docSnap.data().habitsState;
+                    habits.forEach(h => {
+                        const el = document.getElementById(`${window.currentProfile}_${h.id}`);
+                        if (el && saved[h.id] !== undefined) el.checked = saved[h.id];
+                    });
+                }
+            });
         }
 
-        window.toggleHabit = function(key) {
-            const el = document.getElementById(key);
-            if(el) localStorage.setItem(key, el.checked ? 'true' : 'false');
+        window.toggleHabit = async function(key, isChecked) {
+            const habitId = key.split('_').slice(1).join('_');
+            const docRef = doc(db, "users", window.currentProfile);
+            const docSnap = await getDoc(docRef);
+            let habitsState = docSnap.exists() && docSnap.data().habitsState ? docSnap.data().habitsState : {};
+            
+            habitsState[habitId] = isChecked;
+            await setDoc(docRef, { habitsState: habitsState }, { merge: true });
         };
 
         function renderWorkoutDaySelector() {
@@ -423,7 +450,7 @@
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-6">
                 <div>
                     <h2 class="text-xl font-black text-white mb-1">${data.title}</h2>
-                    <p class="text-xs text-slate-400">Anote os pesos utilizados para garantir a progressão de carga.</p>
+                    <p class="text-xs text-slate-400">Marque as caixas dos exercícios concluídos e anote suas cargas.</p>
                 </div>
 
                 <div class="bg-slate-800/80 p-4 sm:p-5 rounded-xl border border-slate-700">
@@ -440,13 +467,17 @@
 
             data.exercises.forEach(ex => {
                 const savedWeight = localStorage.getItem(`${window.currentProfile}_weight_${ex.id}`) || '';
+                const savedChecked = localStorage.getItem(`${window.currentProfile}_check_${ex.id}`) === 'true' ? 'checked' : '';
 
                 html += `
                 <div class="bg-slate-800/60 hover:bg-slate-800 border border-slate-700/70 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition">
-                    <div class="space-y-1">
-                        <span class="font-bold text-base text-white">${ex.name}</span>
-                        <p class="text-xs ${accentText} font-medium">${ex.mode}</p>
-                        <p class="text-xs text-slate-400">${ex.tip}</p>
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="check_${ex.id}" ${savedChecked} onchange="toggleExerciseCheck('${ex.id}', this.checked)" class="w-5 h-5 accent-emerald-500 rounded cursor-pointer mt-1">
+                        <div class="space-y-0.5">
+                            <label for="check_${ex.id}" class="font-bold text-base text-white cursor-pointer">${ex.name}</label>
+                            <p class="text-xs ${accentText} font-medium">${ex.mode}</p>
+                            <p class="text-xs text-slate-400">${ex.tip}</p>
+                        </div>
                     </div>
 
                     <div class="flex items-center gap-3 bg-slate-900/80 p-2 rounded-lg border border-slate-700/60 self-start sm:self-center">
@@ -478,13 +509,17 @@
             container.innerHTML = html;
         };
 
+        window.toggleExerciseCheck = function(id, isChecked) {
+            localStorage.setItem(`${window.currentProfile}_check_${id}`, isChecked ? 'true' : 'false');
+        };
+
         window.saveExerciseWeight = function(id, val) {
             localStorage.setItem(`${window.currentProfile}_weight_${id}`, val);
         };
 
-        // SALVAR TREINO E REGISTRAR CHECK-IN NO FIREBASE
         window.finishWorkoutDay = async function(day) {
-            const dateStr = new Date().toLocaleDateString('pt-BR');
+            const dateObj = new Date();
+            const dateStr = dateObj.toLocaleDateString('pt-BR');
             const docRef = doc(db, "users", window.currentProfile);
             const docSnap = await getDoc(docRef);
             
@@ -495,9 +530,8 @@
             }
 
             const streak = checkins.length;
-
             await setDoc(docRef, { checkins: checkins, streak: streak }, { merge: true });
-            alert(`🔥 Treino ${day} concluído! Check-in registrado no banco para ${dateStr}. Siga firme!`);
+            alert(`🔥 Treino ${day} concluído! Check-in salvo no banco de dados para ${dateStr}. Siga firme!`);
         };
 
         // FIREBASE SYNC REALTIME
@@ -506,20 +540,48 @@
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     if (data.weight) document.getElementById('dash-weight-display').textContent = `${data.weight} kg`;
-                    if (data.water !== undefined) document.getElementById('water-current-amount').textContent = `${data.water} ml`;
-                    if (data.water !== undefined) document.getElementById('dash-water-display').textContent = `${data.water} ml`;
+                    
+                    const waterVal = data.water !== undefined ? data.water : 0;
+                    document.getElementById('water-current-amount').textContent = `${waterVal} ml`;
+                    document.getElementById('dash-water-display').textContent = `${waterVal} ml`;
+
                     if (data.history) renderTableData(data.history);
                     
-                    // Renderiza o Calendário/Check-ins e Streak
                     const checkins = data.checkins || [];
                     document.getElementById('streak-counter').textContent = data.streak || checkins.length;
-                    renderCheckins(checkins);
+                    renderCheckinsAndMetrics(checkins);
                 }
             });
         }
 
-        function renderCheckins(checkins) {
+        function renderCheckinsAndMetrics(checkins) {
             const container = document.getElementById('checkin-history-list');
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth();
+
+            let countWeek = 0;
+            let countMonth = 0;
+            let countYear = 0;
+
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(now.getDate() - 7);
+
+            checkins.forEach(dateStr => {
+                const parts = dateStr.split('/');
+                if (parts.length === 3) {
+                    const checkDate = new Date(parts[2], parts[1] - 1, parts[0]);
+                    
+                    if (checkDate >= oneWeekAgo && checkDate <= now) countWeek++;
+                    if (checkDate.getMonth() === currentMonth && checkDate.getFullYear() === currentYear) countMonth++;
+                    if (checkDate.getFullYear() === currentYear) countYear++;
+                }
+            });
+
+            document.getElementById('metric-week').textContent = countWeek;
+            document.getElementById('metric-month').textContent = countMonth;
+            document.getElementById('metric-year').textContent = countYear;
+
             if (checkins.length === 0) {
                 container.innerHTML = `<span class="text-xs text-slate-500">Nenhum check-in gravado ainda. Conclua um treino para registrar!</span>`;
                 return;

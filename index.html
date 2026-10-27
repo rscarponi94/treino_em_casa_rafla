@@ -27,16 +27,23 @@
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col antialiased">
 
-    <!-- Modal de Solicitação de Chave de Acesso -->
-    <div id="auth-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-[100] flex items-center justify-center p-4 hidden">
+    <!-- Modal Pop-up de Confirmação do Treino -->
+    <div id="confirm-workout-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-[100] flex items-center justify-center p-4 hidden">
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-sm w-full space-y-4 shadow-2xl text-center">
-            <div class="text-3xl">🔒</div>
-            <h3 class="text-lg font-extrabold text-white">Acesso Restrito</h3>
-            <p class="text-xs text-slate-400">Digite a chave de acesso secreta configurada no Firebase para liberar a sincronização.</p>
-            <input type="password" id="secret-key-input" placeholder="Digite a chave secreta..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-center text-sm focus:outline-none focus:border-red-500">
-            <button onclick="saveSecretKey()" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-bold text-sm rounded-xl transition">
-                Liberar Acesso
-            </button>
+            <div class="text-3xl">🏋️‍♂️</div>
+            <h3 class="text-lg font-extrabold text-white" id="modal-workout-title">Concluir Treino</h3>
+            <p class="text-xs text-slate-400">Confirme a senha de acesso para registrar este treino e salvar no Firebase.</p>
+            
+            <input type="password" id="modal-password-input" placeholder="Digite a senha (Rafla1706)..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-center text-sm focus:outline-none focus:border-emerald-500">
+            
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeWorkoutModal()" class="w-1/2 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl transition">
+                    Cancelar
+                </button>
+                <button onclick="submitWorkoutRegistration()" class="w-1/2 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition shadow-lg">
+                    Confirmar & Salvar
+                </button>
+            </div>
         </div>
     </div>
 
@@ -64,9 +71,6 @@
                         <button id="btn-profile-rafael" onclick="switchProfile('rafael')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-red-600 text-white shadow">👨 Rafael</button>
                         <button id="btn-profile-flaviane" onclick="switchProfile('flaviane')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white">🤰 Flaviane</button>
                     </div>
-                    <button onclick="localStorage.removeItem('app_secret_key'); location.reload();" title="Sair / Bloquear" class="p-2 bg-slate-800 hover:bg-red-950/50 border border-slate-700 hover:border-red-500/50 text-slate-400 hover:text-red-400 rounded-xl transition">
-                        🔒
-                    </button>
                 </div>
             </div>
 
@@ -296,24 +300,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // CONTROLE DA CHAVE SECRETA DE SEGURANÇA
-        window.getSecretKey = function() {
-            return localStorage.getItem('app_secret_key') || '';
-        };
-
-        window.saveSecretKey = function() {
-            const val = document.getElementById('secret-key-input').value.trim();
-            if(!val) return alert("Digite a chave secreta!");
-            localStorage.setItem('app_secret_key', val);
-            document.getElementById('auth-modal').classList.add('hidden');
-            syncRealtime(window.currentProfile);
-        };
-
-        function checkAuthKey() {
-            if(!getSecretKey()) {
-                document.getElementById('auth-modal').classList.remove('hidden');
-            }
-        }
+        let selectedWorkoutDayForRegistration = null;
 
         const profilesData = {
             rafael: {
@@ -510,7 +497,8 @@
             let habitsState = (docSnap.exists() && docSnap.data().habitsState) ? docSnap.data().habitsState : {};
             
             habitsState[habitId] = isChecked;
-            await setDoc(docRef, { accessKey: getSecretKey(), habitsState: habitsState }, { merge: true });
+            const pass = localStorage.getItem('app_secret_key') || 'Rafla1706';
+            await setDoc(docRef, { accessKey: pass, habitsState: habitsState }, { merge: true });
         };
 
         function renderWorkoutDaySelector() {
@@ -597,7 +585,7 @@
 
             html += `
                 </div>
-                <button onclick="finishWorkoutDay('${day}')" class="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-extrabold text-base rounded-xl shadow-lg transition transform active:scale-95">
+                <button onclick="openWorkoutModal('${day}')" class="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-extrabold text-base rounded-xl shadow-lg transition transform active:scale-95">
                     ✓ Concluir Treino ${day} de Hoje (Salvar Check-in)
                 </button>
             </div>
@@ -614,15 +602,34 @@
             localStorage.setItem(`${window.currentProfile}_weight_${id}`, val);
         };
 
-        // CONCLUIR TREINO COM CHAVE DE ACESSO EXPLICITA
-        window.finishWorkoutDay = async function(day) {
-            const key = getSecretKey();
-            if(!key) {
-                alert("Chave de acesso não encontrada. Por favor, digite a senha.");
-                document.getElementById('auth-modal').classList.remove('hidden');
+        // ABRE O POP-UP DE CONFIRMAÇÃO
+        window.openWorkoutModal = function(day) {
+            selectedWorkoutDayForRegistration = day;
+            document.getElementById('modal-workout-title').textContent = `Concluir Treino ${day}`;
+            
+            // Pré-preenche se já houver senha salva no navegador
+            const savedKey = localStorage.getItem('app_secret_key') || 'Rafla1706';
+            document.getElementById('modal-password-input').value = savedKey;
+            
+            document.getElementById('confirm-workout-modal').classList.remove('hidden');
+        };
+
+        window.closeWorkoutModal = function() {
+            document.getElementById('confirm-workout-modal').classList.add('hidden');
+        };
+
+        // SUBMETE E SALVA O TREINO
+        window.submitWorkoutRegistration = async function() {
+            const passwordInput = document.getElementById('modal-password-input').value.trim();
+            if(!passwordInput) {
+                alert("Por favor, digite a senha!");
                 return;
             }
 
+            // Salva na memória local para facilidade
+            localStorage.setItem('app_secret_key', passwordInput);
+
+            const day = selectedWorkoutDayForRegistration;
             const now = new Date();
             const dateStr = now.toLocaleDateString('pt-BR');
             const dateTimeStr = now.toLocaleString('pt-BR');
@@ -646,22 +653,24 @@
 
             try {
                 await setDoc(docRef, {
-                    accessKey: key,
+                    accessKey: passwordInput,
                     checkins: checkins,
                     streak: checkins.length,
                     activityLogs: activityLogs
                 }, { merge: true });
 
-                alert(`🔥 Treino ${day} registrado com sucesso!`);
+                closeWorkoutModal();
+                alert(`🔥 Treino ${day} gravado com sucesso no Firebase!`);
             } catch (error) {
                 console.error("Erro ao salvar:", error);
-                alert("Erro ao gravar no Firebase. Verifique se a senha foi digitada corretamente.");
+                alert("Senha incorreta ou bloqueio de permissão do Firebase.");
             }
         };
 
         window.deleteCheckin = async function(dateToDelete) {
             if(!confirm(`Deseja remover o check-in do dia ${dateToDelete}?`)) return;
 
+            const pass = localStorage.getItem('app_secret_key') || 'Rafla1706';
             const docRef = doc(db, "users", window.currentProfile);
             const docSnap = await getDoc(docRef);
             if (!docSnap.exists()) return;
@@ -670,13 +679,14 @@
             checkins = checkins.filter(d => d !== dateToDelete);
 
             await setDoc(docRef, {
-                accessKey: getSecretKey(),
+                accessKey: pass,
                 checkins: checkins,
                 streak: checkins.length
             }, { merge: true });
         };
 
         window.addWater = async function(amount) {
+            const pass = localStorage.getItem('app_secret_key') || 'Rafla1706';
             const now = new Date();
             const dateTimeStr = now.toLocaleString('pt-BR');
 
@@ -695,7 +705,7 @@
             });
 
             await setDoc(docRef, {
-                accessKey: getSecretKey(),
+                accessKey: pass,
                 water: currentWater,
                 activityLogs: activityLogs
             }, { merge: true });
@@ -703,13 +713,12 @@
 
         window.resetWater = async function() {
             if(!confirm("Tem certeza que deseja zerar o consumo de água de hoje?")) return;
+            const pass = localStorage.getItem('app_secret_key') || 'Rafla1706';
             const docRef = doc(db, "users", window.currentProfile);
-            await setDoc(docRef, { accessKey: getSecretKey(), water: 0 }, { merge: true });
+            await setDoc(docRef, { accessKey: pass, water: 0 }, { merge: true });
         };
 
         function syncRealtime(profile) {
-            if(!getSecretKey()) return;
-
             onSnapshot(doc(db, "users", profile), (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
@@ -811,6 +820,7 @@
         }
 
         window.saveEvolutionEntry = async function() {
+            const pass = localStorage.getItem('app_secret_key') || 'Rafla1706';
             const w = parseFloat(document.getElementById('evo-input-weight').value);
             const waist = document.getElementById('evo-input-waist').value;
             if (!w) return alert("Digite ao menos o peso!");
@@ -821,7 +831,7 @@
 
             history.unshift({ date: new Date().toLocaleDateString('pt-BR'), weight: w, waist: waist || '--' });
 
-            await setDoc(docRef, { accessKey: getSecretKey(), weight: w, waist: waist, history: history }, { merge: true });
+            await setDoc(docRef, { accessKey: pass, weight: w, waist: waist, history: history }, { merge: true });
             document.getElementById('evo-input-weight').value = '';
             document.getElementById('evo-input-waist').value = '';
         };
@@ -891,7 +901,6 @@
         };
 
         // INICIALIZAÇÃO
-        checkAuthKey();
         renderHabits();
         syncRealtime('rafael');
         renderWorkoutDaySelector();

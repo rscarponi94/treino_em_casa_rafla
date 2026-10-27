@@ -27,6 +27,19 @@
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col antialiased">
 
+    <!-- Modal de Solicitação de Chave de Acesso -->
+    <div id="auth-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-[100] flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-sm w-full space-y-4 shadow-2xl text-center">
+            <div class="text-3xl">🔒</div>
+            <h3 class="text-lg font-extrabold text-white">Acesso Restrito</h3>
+            <p class="text-xs text-slate-400">Digite a chave de acesso secreta configurada no Firebase para liberar a sincronização.</p>
+            <input type="password" id="secret-key-input" placeholder="Digite a chave secreta..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-white text-center text-sm focus:outline-none focus:border-red-500">
+            <button onclick="saveSecretKey()" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-bold text-sm rounded-xl transition">
+                Liberar Acesso
+            </button>
+        </div>
+    </div>
+
     <!-- Header Navigation -->
     <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50 shadow-xl">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between py-3 gap-3">
@@ -146,9 +159,16 @@
                                 <span class="text-xs text-slate-400 uppercase font-semibold block">Último Peso Registrado</span>
                                 <span id="dash-weight-display" class="text-2xl font-black text-white">-- kg</span>
                             </div>
-                            <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-800">
-                                <span class="text-xs text-slate-400 uppercase font-semibold block">Água Ingerida Hoje</span>
-                                <span id="dash-water-display" class="text-2xl font-black text-blue-400">0 ml</span>
+                            
+                            <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-800 space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs text-slate-400 uppercase font-semibold">Água Ingerida Hoje</span>
+                                    <span id="dash-water-status" class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-400">Em Progresso</span>
+                                </div>
+                                <span id="dash-water-display" class="text-2xl font-black text-blue-400 block">0 ml</span>
+                                <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
+                                    <div id="dash-water-bar" class="bg-blue-500 h-full transition-all duration-300" style="width: 0%"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -187,15 +207,41 @@
             </div>
         </section>
 
-        <!-- 4. NUTRIÇÃO & ÁGUA -->
+        <!-- 4. NUTRIÇÃO & ÁGUA COMPLETA -->
         <section id="tab-calculator" class="space-y-6 hidden">
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg text-center space-y-6">
-                <h3 class="text-lg font-bold text-white">💧 Controle de Hidratação Diária</h3>
-                <div class="text-5xl font-black text-blue-400" id="water-current-amount">0 ml</div>
-                <div class="flex justify-center gap-3">
-                    <button onclick="addWater(250)" class="py-3 px-6 bg-slate-800 border border-slate-700 text-blue-400 font-bold text-sm rounded-xl hover:bg-slate-700 transition">+250ml Copo</button>
-                    <button onclick="addWater(500)" class="py-3 px-6 bg-slate-800 border border-slate-700 text-blue-400 font-bold text-sm rounded-xl hover:bg-slate-700 transition">+500ml Squeeze</button>
-                    <button onclick="resetWater()" class="py-3 px-6 bg-red-900/40 text-red-400 font-bold text-sm rounded-xl hover:bg-red-900/60 transition">Zerar</button>
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg text-center space-y-6 max-w-2xl mx-auto">
+                <div class="space-y-2">
+                    <h3 class="text-xl font-black text-white flex items-center justify-center gap-2">
+                        💧 Controle de Hidratação Diária
+                    </h3>
+                    <p id="water-goal-sub" class="text-xs text-slate-400">Meta recomendada: 3.500 ml / dia</p>
+                </div>
+
+                <div class="bg-slate-800/80 p-6 rounded-2xl border border-slate-700/80 space-y-4">
+                    <div class="flex justify-between items-baseline px-2">
+                        <span class="text-xs font-bold text-slate-400 uppercase">Progresso</span>
+                        <span id="water-percentage" class="text-lg font-black text-blue-400">0%</span>
+                    </div>
+
+                    <div class="text-5xl font-black text-blue-400 tracking-tight" id="water-current-amount">0 ml</div>
+
+                    <div class="w-full bg-slate-900 h-4 rounded-full overflow-hidden p-0.5 border border-slate-700">
+                        <div id="water-progress-bar" class="bg-gradient-to-r from-blue-600 to-cyan-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+
+                    <p id="water-remaining-text" class="text-xs font-semibold text-slate-300">Faltam 3.500 ml para atingir a meta.</p>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-3">
+                    <button onclick="addWater(250)" class="py-3 px-5 bg-slate-800 border border-slate-700 hover:border-blue-500 text-blue-400 font-bold text-sm rounded-xl transition flex items-center gap-2">
+                        🥤 +250ml Copo
+                    </button>
+                    <button onclick="addWater(500)" class="py-3 px-5 bg-slate-800 border border-slate-700 hover:border-blue-500 text-blue-400 font-bold text-sm rounded-xl transition flex items-center gap-2">
+                        🍼 +500ml Squeeze
+                    </button>
+                    <button onclick="resetWater()" class="py-3 px-5 bg-red-950/40 border border-red-900/50 hover:bg-red-900/60 text-red-400 font-bold text-sm rounded-xl transition">
+                        🗑️ Zerar
+                    </button>
                 </div>
             </div>
         </section>
@@ -219,9 +265,28 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // CONTROLE DA CHAVE SECRETA DE SEGURANÇA
+        window.getSecretKey = function() {
+            return localStorage.getItem('app_secret_key') || '';
+        };
+
+        window.saveSecretKey = function() {
+            const val = document.getElementById('secret-key-input').value.trim();
+            if(!val) return alert("Digite a chave secreta!");
+            localStorage.setItem('app_secret_key', val);
+            document.getElementById('auth-modal').classList.add('hidden');
+            syncRealtime(window.currentProfile);
+        };
+
+        function checkAuthKey() {
+            if(!getSecretKey()) {
+                document.getElementById('auth-modal').classList.remove('hidden');
+            }
+        }
+
         const profilesData = {
             rafael: {
-                name: "Rafael", badge: "RAFAEL", badgeClass: "bg-red-500/10 text-red-400 border-red-500/20",
+                name: "Rafael", badge: "RAFAEL", badgeClass: "bg-red-500/10 text-red-400 border-red-500/20", waterGoal: 3500,
                 heroTag: "⚡ PERDA DE GORDURA & MASSA MAGRA", heroQuote: '"A disciplina compensa a falta de motivação."',
                 heroSub: "Seu objetivo é secar e preservar massa magra. Foco nas vitórias diárias.",
                 habits: [
@@ -289,7 +354,7 @@
                 }
             },
             flaviane: {
-                name: "Flaviane", badge: "FLAVIANE", badgeClass: "bg-pink-500/10 text-pink-400 border-pink-500/20",
+                name: "Flaviane", badge: "FLAVIANE", badgeClass: "bg-pink-500/10 text-pink-400 border-pink-500/20", waterGoal: 3000,
                 heroTag: "🌸 GESTACIONAL SEGURO & PREPARAÇÃO PARA O PARTO", heroQuote: '"Cuidando da sua saúde e do bebê."',
                 heroSub: "Postura, assoalho pélvico (Kegel), mobilidade de quadril e giro leve.",
                 habits: [
@@ -371,6 +436,7 @@
             document.getElementById('hero-tag').textContent = p.heroTag;
             document.getElementById('hero-quote').textContent = p.heroQuote;
             document.getElementById('hero-sub').textContent = p.heroSub;
+            document.getElementById('water-goal-sub').textContent = `Meta recomendada: ${p.waterGoal.toLocaleString()} ml / dia`;
 
             window.currentWorkoutDay = p.days[0];
             renderHabits();
@@ -413,7 +479,7 @@
             let habitsState = docSnap.exists() && docSnap.data().habitsState ? docSnap.data().habitsState : {};
             
             habitsState[habitId] = isChecked;
-            await setDoc(docRef, { habitsState: habitsState }, { merge: true });
+            await setDoc(docRef, { accessKey: getSecretKey(), habitsState: habitsState }, { merge: true });
         };
 
         function renderWorkoutDaySelector() {
@@ -530,20 +596,45 @@
             }
 
             const streak = checkins.length;
-            await setDoc(docRef, { checkins: checkins, streak: streak }, { merge: true });
-            alert(`🔥 Treino ${day} concluído! Check-in salvo no banco de dados para ${dateStr}. Siga firme!`);
+            await setDoc(docRef, { accessKey: getSecretKey(), checkins: checkins, streak: streak }, { merge: true });
+            alert(`🔥 Treino ${day} concluído! Check-in salvo no banco para ${dateStr}. Siga firme!`);
         };
 
         // FIREBASE SYNC REALTIME
         function syncRealtime(profile) {
+            if(!getSecretKey()) return;
+
             onSnapshot(doc(db, "users", profile), (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     if (data.weight) document.getElementById('dash-weight-display').textContent = `${data.weight} kg`;
                     
                     const waterVal = data.water !== undefined ? data.water : 0;
+                    const goal = profilesData[profile].waterGoal;
+                    const pct = Math.min(100, Math.round((waterVal / goal) * 100));
+
                     document.getElementById('water-current-amount').textContent = `${waterVal} ml`;
-                    document.getElementById('dash-water-display').textContent = `${waterVal} ml`;
+                    document.getElementById('dash-water-display').textContent = `${waterVal} / ${goal} ml`;
+                    
+                    document.getElementById('water-percentage').textContent = `${pct}%`;
+                    document.getElementById('water-progress-bar').style.width = `${pct}%`;
+                    document.getElementById('dash-water-bar').style.width = `${pct}%`;
+
+                    const rem = goal - waterVal;
+                    const remainingText = document.getElementById('water-remaining-text');
+                    const dashStatus = document.getElementById('dash-water-status');
+
+                    if (rem <= 0) {
+                        remainingText.textContent = "🎉 Parabéns! Meta de hidratação batida!";
+                        remainingText.className = "text-xs font-bold text-emerald-400";
+                        dashStatus.textContent = "Meta Batida!";
+                        dashStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400";
+                    } else {
+                        remainingText.textContent = `Faltam ${rem.toLocaleString()} ml para atingir a meta.`;
+                        remainingText.className = "text-xs font-semibold text-slate-300";
+                        dashStatus.textContent = "Em Progresso";
+                        dashStatus.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-400";
+                    }
 
                     if (data.history) renderTableData(data.history);
                     
@@ -605,7 +696,7 @@
 
             history.unshift({ date: new Date().toLocaleDateString('pt-BR'), weight: w, waist: waist || '--' });
 
-            await setDoc(docRef, { weight: w, waist: waist, history: history }, { merge: true });
+            await setDoc(docRef, { accessKey: getSecretKey(), weight: w, waist: waist, history: history }, { merge: true });
             document.getElementById('evo-input-weight').value = '';
             document.getElementById('evo-input-waist').value = '';
         };
@@ -615,12 +706,12 @@
             const docSnap = await getDoc(docRef);
             let current = docSnap.exists() && docSnap.data().water ? docSnap.data().water : 0;
             current += amount;
-            await setDoc(docRef, { water: current }, { merge: true });
+            await setDoc(docRef, { accessKey: getSecretKey(), water: current }, { merge: true });
         };
 
         window.resetWater = async function() {
             const docRef = doc(db, "users", window.currentProfile);
-            await setDoc(docRef, { water: 0 }, { merge: true });
+            await setDoc(docRef, { accessKey: getSecretKey(), water: 0 }, { merge: true });
         };
 
         function renderTableData(history) {
@@ -688,6 +779,7 @@
         };
 
         // INICIALIZAÇÃO
+        checkAuthKey();
         renderHabits();
         syncRealtime('rafael');
         renderWorkoutDaySelector();
